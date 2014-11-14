@@ -14,7 +14,6 @@ var PROJECTS = [
 	'iot.ponte',
 	'iot.concierge',
 	'iot.mosquitto',
-	'iot.smarthome',
 	'iot.kura',
 	'iot.krikkit',
 	'iot.om2m',
