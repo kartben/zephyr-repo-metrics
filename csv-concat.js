@@ -13,7 +13,8 @@ writer.writeRecord(['project', 'index', 'date', 'files',
 	'language',
 	'blank',
 	'comment',
-	'code'
+	'code',
+	'comment+code'
 ]);
 
 dir.readFiles('/tmp/repos', {
@@ -29,6 +30,7 @@ dir.readFiles('/tmp/repos', {
 		if (this.parsingStatus.rows > 0) {
 			var head = path.basename(filename, '.csv').split(',');
 			console.log(head);
+			data = data.concat(parseInt(data[3]) + parseInt(data[4]))
 			console.log(data);
 			writer.writeRecord(head.concat(data));
 		}
