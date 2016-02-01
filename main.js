@@ -25,7 +25,9 @@ var PROJECTS = [
     'iot.risev2g',
     'iot.4diac',
     'iot.vorto',
-    'iot.paho.incubator'
+    'iot.paho.incubator',
+    'iot.hawkbit',
+    'iot.tiaki'
 ]
 
 var DATES = []
