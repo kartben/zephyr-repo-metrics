@@ -8,39 +8,52 @@ var exec = require('child_process').exec;
 var moment = require("moment");
 
 var PROJECTS = [
-    'iot.smarthome',
-//    'iot.mihini',
-    'iot.paho',
-    'iot.eclipsescada',
-    'iot.ponte',
-    'iot.concierge',
-    'iot.mosquitto',
-    'iot.kura',
-    'iot.krikkit',
-    'iot.om2m',
-    'iot.californium',
-    'iot.wakaama',
-    'iot.moquette',
-    'iot.leshan',
-    'iot.risev2g',
     'iot.4diac',
-    'iot.vorto',
-    'iot.paho.incubator',
-    'iot.hawkbit',
-    'iot.tiaki',
-    'iot.hono',
-    'iot.whiskers',
-    'iot.edje',
-    'iot.milo',
-    'iot.kapua',
     'iot.agail',
+    'iot.californium',
+    'iot.concierge',
+    'iot.cyclonedds',
+    'iot.ditto',
+    'iot.duttile',
+    'iot.eclipsescada',
+    'iot.edje',
+    'iot.fog05',
+    'iot.hawkbit',
+    'iot.hip',
+    'iot.hono',
+    'iot.ignite',
     'iot.iofog',
-    'iot.unide'
+    'iot.kapua',
+    'iot.keti',
+    'iot.kuksa',
+    'iot.kura',
+    'iot.leshan',
+    'iot.milo',
+    'iot.mita',
+    'iot.mosquitto',
+    'iot.om2m',
+    'iot.paho.incubator',
+    'iot.paho',
+//    'iot.ponte',
+//    'iot.risev2g',
+    'iot.smarthome',
+    'iot.tahu',
+    'iot.thingweb',
+//    'iot.tiaki',
+    'iot.thingweb',
+    'iot.tinydtls',
+    'iot.unide',
+    'iot.volttron',
+    'iot.vorto',
+    'iot.wakaama',
+    'iot.whiskers'
+//    'iot.mihini',
+
 ]
 
 var DATES = []
 
-var m = moment("2012-01-31");
+var m = moment("2017-01-31");
 var beginningOfCurrentMonth = moment().startOf('month')
 
 while (m.isBefore(beginningOfCurrentMonth)) {
