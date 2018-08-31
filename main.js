@@ -1,12 +1,19 @@
 var csv = require('csv');
 
-var request = require('request');
+var request = require('request'),
+    cachedRequest = require('cached-request')(request),
+    cacheDirectory = "./cache";
 
 var sys = require('sys')
 var exec = require('child_process').exec;
 
 var moment = require("moment");
 
+// we want to cache requests to the Eclipse PMI to not hit the servers too hard :)
+cachedRequest.setCacheDirectory(cacheDirectory);
+cachedRequest.setValue('ttl', 120 * 60 * 60 * 1000);
+
+// TODO consider fetching this list from the PMI…
 var PROJECTS = [
     'birt',
     'datatools',
@@ -200,7 +207,7 @@ var PROJECTS = [
     'rt.gemini.management',
     'rt.gemini.naming',
     'rt.gemini.web',
-    'rt.gyrex',
+    //    'rt.gyrex',
     'rt.jetty',
     'rt.rap',
     'rt.rap.incubator',
@@ -340,7 +347,7 @@ var PROJECTS = [
     'webtools.webservices'
 ]
 
-var DATES = []
+var DATES = [];
 
 var m = moment("2018-06-30");
 var beginningOfCurrentMonth = moment().startOf('month')
@@ -354,39 +361,45 @@ while (m.isBefore(beginningOfCurrentMonth)) {
 
 function computeRepositories() {
     var repositories = {};
-    var idx = 0;
 
-    for (var i in PROJECTS) {
-        var p = PROJECTS[i];
+    var pp = PROJECTS //.slice(0,200);
+
+    for (var i in pp) {
+        var p = pp[i];
         repositories[p] = []
 
         console.log('Requesting info for ' + p);
 
         url = ''
-        if  (p.startsWith('polarsys')) {
+        if (p.startsWith('polarsys')) {
             url = 'https://polarsys.org/json/project/' + p.replace('polarsys.', '');
         } else if (p.startsWith('locationtech')) {
             url = 'https://locationtech.org/json/project/' + p.replace('locationtech.', 'technology.');
-        } else { 
-           url = 'https://projects.eclipse.org/json/project/' + p
+        } else {
+            url = 'https://projects.eclipse.org/json/project/' + p
         }
 
-        request({
+        cachedRequest({
             url: url,
             json: true
-        }, function(error, response, result) {
+        }, function (error, response, result) {
             if (!error && response.statusCode == 200) {
                 for (var project in result.projects) {
                     var source_repos = result.projects[project].source_repo
 
+		    var idx = 1;
                     for (var i in source_repos) {
                         var url = source_repos[i].url;
                         url = url.replace('http://git.eclipse.org/c/', 'http://git.eclipse.org/gitroot/')
+                        url = url.replace('http://polarsys.org/', 'http://git.polarsys.org')
+                        url = url.replace('http://git.polarsys.org/c/', 'http://git.polarsys.org/gitroot/')
 
-                        var path = '/tmp/repos/' + idx++;
+                        var path = '/home/kartben/tmp/repos/' + project + (idx++);
 
-                        console.log('$ git clone ' + url + ' ' + path);
-                        exec('git clone ' + url + ' ' + path, gitclone_callback(project, url, path));
+                        var delay = Math.floor(Math.random() * 1800);
+                        console.log(`$ sleep ${delay} && git clone ${url} ${path}`)
+                        exec(`sleep ${delay} && git clone ${url} ${path}`, gitclone_callback(project, url, path) );
+
                     }
 
                 }
@@ -398,7 +411,16 @@ function computeRepositories() {
 
 
 function gitclone_callback(project, url, path) {
-    return function() {
+    return function (error, stdout, stderr) {
+
+                             if (error) {
+                                 console.error(`${project} -- clone error: ${error}`);
+                                 console.log(`${project} -- stderr: ${stderr}`);
+                             }
+                             console.log(`${project} -- stdout: ${stdout}`);
+                             console.log(`${project} -- gitclone_callback(${project}, ${url}, ${path});`);
+
+
         console.log('[' + project + '] Clone of ' + url + ' in ' + path + ' ... done');
 
         cloc(project, path, DATES, 0);
@@ -408,21 +430,19 @@ function gitclone_callback(project, url, path) {
 function cloc(project, path, dates, index) {
     if (index >= dates.length) return;
     var date = dates[index];
-    var branch = 'master';
-    if (project == 'iot.kura')
-        branch = 'develop';
+    var branch = 'HEAD';
 
     console.log('GIT_DIR=' + path + '/.git git rev-list ' + branch + ' -n 1 --first-parent --before=' + date)
-    exec('GIT_DIR=' + path + '/.git git rev-list ' + branch + ' -n 1 --first-parent --before=' + date, function(error, stdout, stderr) {
+    exec('GIT_DIR=' + path + '/.git git rev-list ' + branch + ' -n 1 --first-parent --before=' + date, function (error, stdout, stderr) {
         console.log(path + ' - ' + date + ': ' + stdout);
 
         if (stdout) {
             console.log('$ git --git-dir=' + path + '/.git --work-tree=' + path + ' checkout ' + stdout);
-            exec('git --git-dir=' + path + '/.git --work-tree=' + path + ' checkout ' + stdout, function(error, stdout, stderr) {
+            exec('git --git-dir=' + path + '/.git --work-tree=' + path + ' checkout ' + stdout, function (error, stdout, stderr) {
                 if (!error) {
-                    var csv_filepath = path + '/../' + project + path.replace('/tmp/repos/', ',') + ',' + date + '.csv';
+                    var csv_filepath = path + '/../' + project + path.replace('/home/kartben/tmp/repos/', ',') + ',' + date + '.csv';
                     console.log('$ cloc ' + path + ' --csv --report-file=' + csv_filepath);
-                    exec('cloc ' + path + ' --csv --report-file=' + csv_filepath, function(error, stdout, stderr) {
+                    exec('cloc ' + path + ' --csv --report-file=' + csv_filepath, function (error, stdout, stderr) {
                         if (!error) {
                             cloc(project, path, dates, index + 1);
                         } else {
