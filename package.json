@@ -3,7 +3,7 @@
   "description": "Gather history of LOCs for Eclipse.org projects",
   "version": "0.1.0",
   "dependencies": {
-    "request": "2.45.0",
+    "request": "2.88.2",
     "csv": "0.4.0",
     "node-dir": "*",
     "ya-csv": "*",
