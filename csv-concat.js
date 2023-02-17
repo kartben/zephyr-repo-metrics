@@ -3,7 +3,7 @@ var csv = require('ya-csv');
 var path = require('path');
 
 
-var writer = csv.createCsvFileWriter('/Users/kartben/Desktop/all-in-one.csv', {
+var writer = csv.createCsvFileWriter('./all-in-one.csv', {
 	separator: ',', // must remove in writeStream.write()
 	quote: '',
 	escape: ''
