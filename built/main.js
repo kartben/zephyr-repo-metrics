@@ -19,9 +19,7 @@ const moment_1 = __importDefault(require("moment"));
 const fs_1 = __importDefault(require("fs"));
 var exec = require('child-process-promise').exec;
 const DATES = [];
-let stats = new Map();
-//let m = moment("2019-01-31");
-let m = (0, moment_1.default)("2022-12-31");
+let m = (0, moment_1.default)("2019-01-31");
 const beginningOfCurrentMonth = (0, moment_1.default)().startOf('month');
 while (m.isBefore(beginningOfCurrentMonth)) {
     DATES.push(m.format('YYYY-MM-DD'));
@@ -52,25 +50,41 @@ function cloc() {
         return exec('cloc /tmp/repos/zephyr --json --quiet').then((res) => { return res.stdout; });
     });
 }
+let analyticsSnippets = [
+    { name: 'drivers', fn: countDrivers },
+    { name: 'samples', fn: countSamples },
+    { name: 'boards', fn: countBoards },
+    { name: 'cloc', fn: cloc }
+];
+console.log(analyticsSnippets);
+let results = {};
 function computeStats() {
     return __awaiter(this, void 0, void 0, function* () {
         //cloneRepo('zephyr', 'https://github.com/zephyrproject-rtos/zephyr', '/tmp/repos/zephyr')
         const zephyrRepo = git.clone('/tmp/zephyr-bare', '/tmp/repos/zephyr')
             .cwd({ path: '/tmp/repos/zephyr' });
+        analyticsSnippets.forEach((snippet) => {
+            results[snippet.name] = [];
+        });
         for (const date of DATES) {
             console.log(date);
             let rev = yield zephyrRepo.raw(['rev-list', 'main', '-n', '1', '--first-parent', '--before=' + date]);
             let sha1 = yield zephyrRepo.checkout([rev.trim()]).revparse(['HEAD']);
             console.log('Repo now at ' + sha1);
+            const promises = analyticsSnippets.map((snippet) => snippet.fn());
+            console.log(promises);
             // Execute all the hooks in parallel
-            const promises = [countDrivers(), countSamples(), countBoards(), cloc()];
             let res = yield Promise.all(promises);
-            stats.set(new Date(date), new Map([
-                ['drivers', res[0]],
-                ['samples', res[1]],
-                ['boards', res[2]],
-                ['cloc', JSON.parse(res[3])]
-            ]));
+            res.forEach((r, i) => {
+                results[analyticsSnippets[i].name].push({ date: new Date(date), result: res[i] });
+            });
+            // stats.set(new Date(date),
+            //     new Map([
+            //         ['drivers', res[0]],
+            //         ['samples', res[1]],
+            //         ['boards', res[2]],
+            //         ['cloc', JSON.parse(res[3])]
+            //     ]));
         }
     });
 }
@@ -87,9 +101,10 @@ function replacer(_key, value) {
 }
 computeStats().then(() => {
     console.log('Done!');
-    console.log(stats);
     // save stats as json file
-    fs_1.default.writeFileSync('stats.json', JSON.stringify(stats, replacer));
+    Object.entries(results).forEach(([key, value]) => {
+        fs_1.default.writeFileSync(`${key}.json`, JSON.stringify(value));
+    });
 }).catch((err) => {
     console.error(err);
 });

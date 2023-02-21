@@ -116,3 +116,8 @@ dist
 .pnp.*
 
 stats.json
+
+boards.json
+samples.json
+drivers.json
+cloc.json

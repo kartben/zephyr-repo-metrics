@@ -6,7 +6,6 @@ import fs from 'fs';
 var exec = require('child-process-promise').exec;
 
 const DATES: string[] = [];
-let stats: Map<Date, Map<string, string>> = new Map();
 
 let m = moment("2019-01-31");
 const beginningOfCurrentMonth = moment().startOf('month');
@@ -22,6 +21,7 @@ let git = simpleGit({
     }
 });
 
+
 async function countDrivers(): Promise<string> {
     return exec('find /tmp/repos/zephyr/dts/bindings/sensor -type f | wc -l').then((res: any) => { return res.stdout.trim() });
 }
@@ -34,9 +34,35 @@ async function countBoards(): Promise<string> {
     return exec('find /tmp/repos/zephyr/boards -type f | grep /board.cmake | wc -l').then((res: any) => { return res.stdout.trim() });
 }
 
-async function cloc() {
+async function cloc(): Promise<string> {
     return exec('cloc /tmp/repos/zephyr --json --quiet').then((res: any) => { return res.stdout });
 }
+
+
+interface IAnalyticsSnippet {
+    name: string;
+    fn(): Promise<string>;
+}
+
+let analyticsSnippets: IAnalyticsSnippet[] = [
+    { name: 'drivers', fn: countDrivers },
+    { name: 'samples', fn: countSamples },
+    { name: 'boards', fn: countBoards },
+    { name: 'cloc', fn: cloc }
+];
+
+console.log(analyticsSnippets);
+
+interface IResult {
+    date: Date;
+    result: string
+}
+
+interface IResults {
+    [key: string]: IResult[]
+}
+
+let results: IResults = {}
 
 
 async function computeStats() {
@@ -44,43 +70,53 @@ async function computeStats() {
     const zephyrRepo: SimpleGit = git.clone('/tmp/zephyr-bare', '/tmp/repos/zephyr')
         .cwd({ path: '/tmp/repos/zephyr' })
 
+    analyticsSnippets.forEach((snippet: IAnalyticsSnippet) => {
+        results[snippet.name] = [];
+    });
+
     for (const date of DATES) {
         console.log(date)
         let rev: string = await zephyrRepo.raw(['rev-list', 'main', '-n', '1', '--first-parent', '--before=' + date])
         let sha1: string = await zephyrRepo.checkout([rev.trim()]).revparse(['HEAD']);
         console.log('Repo now at ' + sha1);
 
+        const promises = analyticsSnippets.map((snippet: IAnalyticsSnippet) => snippet.fn());
+        console.log(promises);
+
         // Execute all the hooks in parallel
-        const promises = [countDrivers(), countSamples(), countBoards(), cloc()];
         let res = await Promise.all(promises)
-        stats.set(new Date(date),
-            new Map([
-                ['drivers', res[0]],
-                ['samples', res[1]],
-                ['boards', res[2]],
-                ['cloc', JSON.parse(res[3])]
-            ]));
+        res.forEach((r, i) => {
+            results[analyticsSnippets[i].name].push({ date: new Date(date), result: res[i] });
+        })
+
+        // stats.set(new Date(date),
+        //     new Map([
+        //         ['drivers', res[0]],
+        //         ['samples', res[1]],
+        //         ['boards', res[2]],
+        //         ['cloc', JSON.parse(res[3])]
+        //     ]));
 
     }
 }
 
 function replacer(_key: any, value: any) {
-    if(value instanceof Map) {
-      return {
-        dataType: 'Map',
-        value: Array.from(value.entries()), // or with spread: value: [...value]
-      };
+    if (value instanceof Map) {
+        return {
+            dataType: 'Map',
+            value: Array.from(value.entries()), // or with spread: value: [...value]
+        };
     } else {
-      return value;
+        return value;
     }
-  }
-  
+}
 
 computeStats().then(() => {
     console.log('Done!');
-    console.log(stats);
     // save stats as json file
-    fs.writeFileSync('stats.json', JSON.stringify(stats,replacer));
+    Object.entries(results).forEach(([key, value]) => {
+        fs.writeFileSync(`${key}.json`, JSON.stringify(value));
+    });
 }).catch((err) => {
     console.error(err);
 });
