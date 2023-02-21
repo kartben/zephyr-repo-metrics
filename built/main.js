@@ -16,11 +16,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 //import csv from 'csv';
 const simple_git_1 = require("simple-git");
 const moment_1 = __importDefault(require("moment"));
+const fs_1 = __importDefault(require("fs"));
 var exec = require('child-process-promise').exec;
 const DATES = [];
 let stats = new Map();
 //let m = moment("2019-01-31");
-let m = (0, moment_1.default)("2020-10-31");
+let m = (0, moment_1.default)("2022-12-31");
 const beginningOfCurrentMonth = (0, moment_1.default)().startOf('month');
 while (m.isBefore(beginningOfCurrentMonth)) {
     DATES.push(m.format('YYYY-MM-DD'));
@@ -48,7 +49,7 @@ function countBoards() {
 }
 function cloc() {
     return __awaiter(this, void 0, void 0, function* () {
-        return exec('cloc /tmp/repos/zephyr').then((res) => { return res.stdout; });
+        return exec('cloc /tmp/repos/zephyr --json --quiet').then((res) => { return res.stdout; });
     });
 }
 function computeStats() {
@@ -68,14 +69,27 @@ function computeStats() {
                 ['drivers', res[0]],
                 ['samples', res[1]],
                 ['boards', res[2]],
-                ['cloc', res[3]]
+                ['cloc', JSON.parse(res[3])]
             ]));
         }
     });
 }
+function replacer(_key, value) {
+    if (value instanceof Map) {
+        return {
+            dataType: 'Map',
+            value: Array.from(value.entries()), // or with spread: value: [...value]
+        };
+    }
+    else {
+        return value;
+    }
+}
 computeStats().then(() => {
     console.log('Done!');
     console.log(stats);
+    // save stats as json file
+    fs_1.default.writeFileSync('stats.json', JSON.stringify(stats, replacer));
 }).catch((err) => {
     console.error(err);
 });

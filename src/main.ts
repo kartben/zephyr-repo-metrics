@@ -8,8 +8,7 @@ var exec = require('child-process-promise').exec;
 const DATES: string[] = [];
 let stats: Map<Date, Map<string, string>> = new Map();
 
-//let m = moment("2019-01-31");
-let m = moment("2020-10-31");
+let m = moment("2019-01-31");
 const beginningOfCurrentMonth = moment().startOf('month');
 
 while (m.isBefore(beginningOfCurrentMonth)) {
@@ -36,7 +35,7 @@ async function countBoards(): Promise<string> {
 }
 
 async function cloc() {
-    return exec('cloc /tmp/repos/zephyr').then((res: any) => { return res.stdout });
+    return exec('cloc /tmp/repos/zephyr --json --quiet').then((res: any) => { return res.stdout });
 }
 
 
@@ -59,15 +58,29 @@ async function computeStats() {
                 ['drivers', res[0]],
                 ['samples', res[1]],
                 ['boards', res[2]],
-                ['cloc', res[3]]
+                ['cloc', JSON.parse(res[3])]
             ]));
 
     }
 }
 
+function replacer(_key: any, value: any) {
+    if(value instanceof Map) {
+      return {
+        dataType: 'Map',
+        value: Array.from(value.entries()), // or with spread: value: [...value]
+      };
+    } else {
+      return value;
+    }
+  }
+  
+
 computeStats().then(() => {
     console.log('Done!');
     console.log(stats);
+    // save stats as json file
+    fs.writeFileSync('stats.json', JSON.stringify(stats,replacer));
 }).catch((err) => {
     console.error(err);
 });
