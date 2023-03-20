@@ -1,6 +1,6 @@
 {
   "name": "zephyr-project-stats",
-  "description": "A tool to gather misc. stats for Zephyr RTOS open source project",
+  "description": "A tool to gather misc. stats for the Zephyr RTOS open source project",
   "version": "0.1.0",
   "main": "built/main.js",
   "bin": {
@@ -10,17 +10,13 @@
     "ansi-colors": "^4.1.3",
     "child-process-promise": "^2.2.1",
     "cli-progress": "^3.12.0",
-    "csv": "6.2.7",
     "moment": "*",
     "node-dir": "*",
-    "request": "2.88.2",
-    "simple-git": "^3.16.1",
-    "ya-csv": "*"
+    "simple-git": "^3.16.1"
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.0",
     "@types/node": "^14.17.5",
-    "@types/random": "^2.1.1",
     "typed-emitter": "^1.3.1",
     "typescript": "^4.3.5"
   },

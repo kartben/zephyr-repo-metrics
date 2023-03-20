@@ -37,7 +37,7 @@ const multibar = new cli_progress_1.MultiBar({
 function countNuttXDrivers(repo) {
     return __awaiter(this, void 0, void 0, function* () {
         let workingDir = yield repo.revparse('--show-toplevel');
-        return exec(`grep "CONFIG_SENSORS_.*" ${workingDir}/drivers/sensors/Make.defs | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
+        return exec(`grep "CONFIG_SENSORS_.*" '${workingDir}/drivers/sensors/Make.defs' | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
     });
 }
 function countFoldersInSubFolder(repo, subfolder) {
@@ -80,15 +80,28 @@ function countZephyrBoards(repo) {
         return exec(`find '${workingDir}/boards' -type f | grep /board.cmake | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
     });
 }
-function cloc(repo) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let workingDir = yield repo.revparse('--show-toplevel');
-        return exec(`cloc '${workingDir}' --json --quiet`).then((res) => { return parseInt(res.stdout.trim()); });
-    });
-}
+// async function cloc(repo: SimpleGit): Promise<Number> {
+//     let workingDir = await repo.revparse('--show-toplevel');
+//     return exec(`cloc '${workingDir}' --json --quiet`).then((res: any) => { 
+//         try {
+//             let out = JSON.parse(res.stdout) ; 
+//             return out.SUM.code + out.SUM.comment
+//         }
+//         catch {
+//             return null;
+//         }
+//     });
+// }
+let cloc = NULL_FUNCTION;
 function numberOfCommits(repo) {
     return __awaiter(this, void 0, void 0, function* () {
         return repo.raw(['rev-list', 'HEAD', '--count', '--first-parent']).then((x) => { return parseInt(x); });
+    });
+}
+function numberOfCommitsPastMonth(repo, context) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let revRange = context.prevSHA1 ? `${context.prevSHA1}..HEAD` : 'HEAD';
+        return repo.raw(['rev-list', revRange, '--count', '--first-parent']).then((x) => { return parseInt(x); });
     });
 }
 function numberOfUniqueContributorsPastMonth(repo, context) {
@@ -157,8 +170,9 @@ let projects = [
             { name: 'drivers', fn: countZephyrDrivers },
             { name: 'samples', fn: countZephyrSamples },
             { name: 'boards', fn: countZephyrBoards },
-            //    { name: 'cloc', fn: cloc },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -170,7 +184,23 @@ let projects = [
             { name: 'drivers', fn: NULL_FUNCTION },
             { name: 'samples', fn: NULL_FUNCTION },
             { name: 'boards', fn: NULL_FUNCTION },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
+            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
+        ]
+    },
+    {
+        name: 'FreeRTOS-Kernel',
+        url: 'https://github.com/FreeRTOS/FreeRTOS-Kernel',
+        branch: 'main',
+        snippets: [
+            { name: 'drivers', fn: NULL_FUNCTION },
+            { name: 'samples', fn: NULL_FUNCTION },
+            { name: 'boards', fn: NULL_FUNCTION },
+            { name: 'cloc', fn: cloc },
+            { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -182,7 +212,9 @@ let projects = [
             { name: 'drivers', fn: countNuttXDrivers },
             { name: 'samples', fn: NULL_FUNCTION },
             { name: 'boards', fn: getCountFileByNameInFolderFn("/boards", "Kconfig") },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -194,7 +226,9 @@ let projects = [
             { name: 'drivers', fn: getCountFoldersInSubFolderFn("/drivers") },
             { name: 'samples', fn: getCountFoldersInSubFolderFn("/examples") },
             { name: 'boards', fn: getCountFoldersInSubFolderFn("/boards") },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -206,7 +240,9 @@ let projects = [
             { name: 'drivers', fn: NULL_FUNCTION },
             { name: 'samples', fn: NULL_FUNCTION },
             { name: 'boards', fn: NULL_FUNCTION },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -218,7 +254,9 @@ let projects = [
             { name: 'drivers', fn: getCountFoldersInSubFolderFn("/hw/drivers/sensors") },
             { name: 'samples', fn: getCountFoldersInSubFolderFn("/apps") },
             { name: 'boards', fn: getCountFoldersInSubFolderFn("/hw/bsp") },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -230,7 +268,9 @@ let projects = [
             { name: 'drivers', fn: NULL_FUNCTION },
             { name: 'samples', fn: NULL_FUNCTION },
             { name: 'boards', fn: getCountFileByNameInFolderFn("/bsp", "board.c") },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -242,7 +282,9 @@ let projects = [
             { name: 'drivers', fn: NULL_FUNCTION },
             { name: 'samples', fn: NULL_FUNCTION },
             { name: 'boards', fn: getCountFoldersInSubFolderFn('/os/hal/boards') },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -251,10 +293,12 @@ let projects = [
         url: 'https://github.com/contiki-ng/contiki-ng',
         branch: 'develop',
         snippets: [
-            { name: 'drivers', fn: getCountFoldersInSubFolderFn('/arch/dev/sensors') },
+            { name: 'drivers', fn: getCountFoldersInSubFolderFn('/arch/dev/sensor') },
             { name: 'samples', fn: getCountFoldersInSubFolderFn('/examples') },
             { name: 'boards', fn: NULL_FUNCTION },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -266,11 +310,16 @@ let projects = [
             { name: 'drivers', fn: NULL_FUNCTION },
             { name: 'samples', fn: NULL_FUNCTION },
             { name: 'boards', fn: NULL_FUNCTION },
+            { name: 'cloc', fn: cloc },
             { name: 'numberOfCommits', fn: numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
         ]
     },
 ];
+if (!fs_1.default.existsSync('stats')) {
+    fs_1.default.mkdirSync('stats');
+}
 fs_1.default.writeFileSync(`stats/all.csv`, `project,date,${projects[0].snippets.map(s => s.name).join(',')}\n`);
 for (let project of projects) {
     let progressBar = multibar.create(DATES.length, 0, { project: project.name.padStart(18) });
