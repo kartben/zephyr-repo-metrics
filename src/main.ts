@@ -312,7 +312,9 @@ let projects: IProject[] = [
 
 ]
 
-
+if (!fs.existsSync('stats')) {
+    fs.mkdirSync('stats');
+  }
 fs.writeFileSync(`stats/all.csv`, `project,date,${projects[0].snippets.map(s => s.name).join(',')}\n`);
 
 for (let project of projects) {
