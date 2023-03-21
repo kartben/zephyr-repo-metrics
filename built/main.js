@@ -1,5 +1,28 @@
 #!/usr/bin/env node
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -13,106 +36,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-//import csv from 'csv';
 const simple_git_1 = require("simple-git");
 const moment_1 = __importDefault(require("moment"));
-const fs_1 = __importDefault(require("fs"));
 const promises_1 = require("node:fs/promises");
 const cli_progress_1 = require("cli-progress");
 const ansi_colors_1 = __importDefault(require("ansi-colors"));
-var exec = require('child-process-promise').exec;
+const fs_1 = __importDefault(require("fs"));
+const snippets = __importStar(require("./snippets"));
+const projects_1 = require("./projects");
 const DATES = [];
-//let m = moment("2019-01-31");
-let m = (0, moment_1.default)().subtract(10, 'year').endOf('month');
+let startingMoment = (0, moment_1.default)().subtract(10, 'year').endOf('month');
 const beginningOfCurrentMonth = (0, moment_1.default)().startOf('month');
-while (m.isBefore(beginningOfCurrentMonth)) {
-    DATES.push(m.format('YYYY-MM-DD'));
-    m.add(1, 'month').endOf('month');
+while (startingMoment.isBefore(beginningOfCurrentMonth)) {
+    DATES.push(startingMoment.format('YYYY-MM-DD'));
+    startingMoment.add(1, 'month').endOf('month');
 }
 const multibar = new cli_progress_1.MultiBar({
-    clearOnComplete: false,
+    //clearOnComplete: true,
+    stopOnComplete: true,
     hideCursor: true,
-    format: '{project} |' + ansi_colors_1.default.cyan('{bar}') + '| {percentage}% | ETA: {eta}s',
+    format: '{project} |' + ansi_colors_1.default.cyan('{bar}') + '| {percentage}% | ETA: {eta}s | {stage}',
 }, cli_progress_1.Presets.rect);
-function countNuttXDrivers(repo) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let workingDir = yield repo.revparse('--show-toplevel');
-        return exec(`grep "CONFIG_SENSORS_.*" '${workingDir}/drivers/sensors/Make.defs' | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
-    });
-}
-function countFoldersInSubFolder(repo, subfolder) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let workingDir = yield repo.revparse('--show-toplevel');
-        return exec(`find '${workingDir}${subfolder}' -type d -maxdepth 1 | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
-    });
-}
-function countFileByNameInFolder(repo, subfolder, fileName) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let workingDir = yield repo.revparse('--show-toplevel');
-        return exec(`find '${workingDir}${subfolder}' -name ${fileName} | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
-    });
-}
-function getCountFoldersInSubFolderFn(subfolder) {
-    return (repo) => __awaiter(this, void 0, void 0, function* () {
-        return countFoldersInSubFolder(repo, subfolder);
-    });
-}
-function getCountFileByNameInFolderFn(subfolder, fileName) {
-    return (repo) => __awaiter(this, void 0, void 0, function* () {
-        return countFileByNameInFolder(repo, subfolder, fileName);
-    });
-}
-function countZephyrDrivers(repo) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let workingDir = yield repo.revparse('--show-toplevel');
-        return exec(`find '${workingDir}/dts/bindings/sensor' -type f | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
-    });
-}
-function countZephyrSamples(repo) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let workingDir = yield repo.revparse('--show-toplevel');
-        return exec(`find '${workingDir}/samples' -type f | grep sample.yaml | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
-    });
-}
-function countZephyrBoards(repo) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let workingDir = yield repo.revparse('--show-toplevel');
-        return exec(`find '${workingDir}/boards' -type f | grep /board.cmake | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
-    });
-}
-// async function cloc(repo: SimpleGit): Promise<Number> {
-//     let workingDir = await repo.revparse('--show-toplevel');
-//     return exec(`cloc '${workingDir}' --json --quiet`).then((res: any) => { 
-//         try {
-//             let out = JSON.parse(res.stdout) ; 
-//             return out.SUM.code + out.SUM.comment
-//         }
-//         catch {
-//             return null;
-//         }
-//     });
-// }
-let cloc = NULL_FUNCTION;
-function numberOfCommits(repo) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return repo.raw(['rev-list', 'HEAD', '--count', '--first-parent']).then((x) => { return parseInt(x); });
-    });
-}
-function numberOfCommitsPastMonth(repo, context) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let revRange = context.prevSHA1 ? `${context.prevSHA1}..HEAD` : 'HEAD';
-        return repo.raw(['rev-list', revRange, '--count', '--first-parent']).then((x) => { return parseInt(x); });
-    });
-}
-function numberOfUniqueContributorsPastMonth(repo, context) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let revRange = context.prevSHA1 ? `${context.prevSHA1}..HEAD` : 'HEAD';
-        return repo.raw(['shortlog', '-sn', revRange]).then((x) => { return x.split(/\n/).length; });
-    });
-}
-function NULL_FUNCTION() {
-    return __awaiter(this, void 0, void 0, function* () { return null; });
-}
 function computeStats(project, progressBar) {
     return __awaiter(this, void 0, void 0, function* () {
         let results = {};
@@ -120,20 +64,25 @@ function computeStats(project, progressBar) {
         let repo;
         let git = (0, simple_git_1.simpleGit)({
             progress({ method, stage, progress }) {
-                //   console.log(`git.${method} ${stage} stage ${progress}% complete`);
+                if ((method === 'clone')) {
+                    progressBar.update(progress, { stage: `Git ${method}: ${stage} ${progress}%` });
+                }
+                else {
+                    progressBar.update({ stage: `Git ${method}: ${stage}` });
+                }
             }
         });
         try {
             yield (0, promises_1.access)(repoPath, promises_1.constants.R_OK | promises_1.constants.W_OK);
-            // repo already exists, fetch updates.
+            // repo already exists, only fetch updates.
             repo = git.cwd(repoPath);
             repo.fetch('origin');
         }
         catch (_a) {
+            let currentTotal = progressBar.getTotal();
+            progressBar.setTotal(currentTotal + 100);
             repo = git.clone(project.url, repoPath).cwd({ path: repoPath });
         }
-        // const zephyrRepo: SimpleGit = git.clone('/tmp/zephyr-bare', '/tmp/repos/zephyr')
-        //     .cwd({ path: '/tmp/repos/zephyr' })
         project.snippets.forEach((snippet) => {
             results[snippet.name] = [];
         });
@@ -144,185 +93,30 @@ function computeStats(project, progressBar) {
             try {
                 let rev = yield repo.raw(['rev-list', project.branch, '-n', '1', '--first-parent', '--before=' + date]);
                 let sha1 = yield repo.checkout([rev.trim(), '-f']).revparse(['HEAD']);
-                promises = project.snippets.map((snippet) => snippet.fn(repo, { prevSHA1: prevSHA1 }));
+                promises = project.snippets.map((snippet) => snippet.fn(repo, { prevSHA1: prevSHA1, moment: (0, moment_1.default)(date) }));
                 prevSHA1 = sha1;
             }
             catch (e) {
                 //            console.log(`** ${date} -- ${project.name}. Skipping... **`)
-                promises = project.snippets.map((snippet) => NULL_FUNCTION());
+                promises = project.snippets.map((snippet) => snippets.NULL_FUNCTION());
             }
             // Execute all the snippets in parallel
             let res = yield Promise.all(promises);
             res.forEach((r, i) => {
                 results[project.snippets[i].name].push({ date: new Date(date), result: res[i] });
             });
-            progressBar.increment();
+            progressBar.increment({ stage: `${date}` });
         }
+        progressBar.update({ stage: `✅` });
         return results;
     });
 }
-let projects = [
-    {
-        name: 'Zephyr',
-        url: 'https://github.com/zephyrproject-rtos/zephyr',
-        branch: 'main',
-        snippets: [
-            { name: 'drivers', fn: countZephyrDrivers },
-            { name: 'samples', fn: countZephyrSamples },
-            { name: 'boards', fn: countZephyrBoards },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'FreeRTOS',
-        url: 'https://github.com/FreeRTOS/FreeRTOS',
-        branch: 'main',
-        snippets: [
-            { name: 'drivers', fn: NULL_FUNCTION },
-            { name: 'samples', fn: NULL_FUNCTION },
-            { name: 'boards', fn: NULL_FUNCTION },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'FreeRTOS-Kernel',
-        url: 'https://github.com/FreeRTOS/FreeRTOS-Kernel',
-        branch: 'main',
-        snippets: [
-            { name: 'drivers', fn: NULL_FUNCTION },
-            { name: 'samples', fn: NULL_FUNCTION },
-            { name: 'boards', fn: NULL_FUNCTION },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'Apache NuttX',
-        url: 'https://github.com/apache/nuttx',
-        branch: 'master',
-        snippets: [
-            { name: 'drivers', fn: countNuttXDrivers },
-            { name: 'samples', fn: NULL_FUNCTION },
-            { name: 'boards', fn: getCountFileByNameInFolderFn("/boards", "Kconfig") },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'RIOT OS',
-        url: 'https://github.com/RIOT-OS/RIOT',
-        branch: 'master',
-        snippets: [
-            { name: 'drivers', fn: getCountFoldersInSubFolderFn("/drivers") },
-            { name: 'samples', fn: getCountFoldersInSubFolderFn("/examples") },
-            { name: 'boards', fn: getCountFoldersInSubFolderFn("/boards") },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'Azure RTOS ThreadX',
-        url: 'https://github.com/azure-rtos/threadx',
-        branch: 'master',
-        snippets: [
-            { name: 'drivers', fn: NULL_FUNCTION },
-            { name: 'samples', fn: NULL_FUNCTION },
-            { name: 'boards', fn: NULL_FUNCTION },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'Apache Mynewt',
-        url: 'https://github.com/apache/mynewt-core',
-        branch: 'master',
-        snippets: [
-            { name: 'drivers', fn: getCountFoldersInSubFolderFn("/hw/drivers/sensors") },
-            { name: 'samples', fn: getCountFoldersInSubFolderFn("/apps") },
-            { name: 'boards', fn: getCountFoldersInSubFolderFn("/hw/bsp") },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'RT-Thread',
-        url: 'https://github.com/RT-Thread/rt-thread',
-        branch: 'master',
-        snippets: [
-            { name: 'drivers', fn: NULL_FUNCTION },
-            { name: 'samples', fn: NULL_FUNCTION },
-            { name: 'boards', fn: getCountFileByNameInFolderFn("/bsp", "board.c") },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'chibi-os',
-        url: 'https://github.com/ChibiOS/ChibiOS',
-        branch: 'master',
-        snippets: [
-            { name: 'drivers', fn: NULL_FUNCTION },
-            { name: 'samples', fn: NULL_FUNCTION },
-            { name: 'boards', fn: getCountFoldersInSubFolderFn('/os/hal/boards') },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'Contiki-NG',
-        url: 'https://github.com/contiki-ng/contiki-ng',
-        branch: 'develop',
-        snippets: [
-            { name: 'drivers', fn: getCountFoldersInSubFolderFn('/arch/dev/sensor') },
-            { name: 'samples', fn: getCountFoldersInSubFolderFn('/examples') },
-            { name: 'boards', fn: NULL_FUNCTION },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-    {
-        name: 'TizenRT',
-        url: 'https://github.com/Samsung/TizenRT',
-        branch: 'master',
-        snippets: [
-            { name: 'drivers', fn: NULL_FUNCTION },
-            { name: 'samples', fn: NULL_FUNCTION },
-            { name: 'boards', fn: NULL_FUNCTION },
-            { name: 'cloc', fn: cloc },
-            { name: 'numberOfCommits', fn: numberOfCommits },
-            { name: 'numberOfCommitsPastMonth', fn: numberOfCommitsPastMonth },
-            { name: 'numberOfUniqueContributorsPastMonth', fn: numberOfUniqueContributorsPastMonth },
-        ]
-    },
-];
 if (!fs_1.default.existsSync('stats')) {
     fs_1.default.mkdirSync('stats');
 }
-fs_1.default.writeFileSync(`stats/all.csv`, `project,date,${projects[0].snippets.map(s => s.name).join(',')}\n`);
-for (let project of projects) {
-    let progressBar = multibar.create(DATES.length, 0, { project: project.name.padStart(18) });
+fs_1.default.writeFileSync(`stats/all.csv`, `project,date,${projects_1.projects[0].snippets.map(s => s.name).join(',')}\n`);
+for (let project of projects_1.projects.sort((a, b) => a.name.localeCompare(b.name))) {
+    let progressBar = multibar.create(DATES.length, 0, { project: project.name.padStart(18), stage: 'Starting…' }, { stopOnComplete: true });
     computeStats(project, progressBar).then((results) => {
         // save stats as json file
         Object.entries(results).forEach(([key, value]) => {
@@ -335,7 +129,6 @@ for (let project of projects) {
             fs_1.default.appendFileSync(`stats/all.csv`, `${project.name},${date},${project.snippets.map(s => results[s.name][idx].result).join(',')}\n`);
             idx++;
         }
-        progressBar.stop();
     }).catch((err) => {
         console.error(err);
     });
