@@ -57,7 +57,7 @@ exports.countZephyrSamples = countZephyrSamples;
 function countZephyrBoards(repo) {
     return __awaiter(this, void 0, void 0, function* () {
         let workingDir = yield repo.revparse('--show-toplevel');
-        return (0, child_process_promise_1.exec)(`find '${workingDir}/boards' -type f | grep /board.cmake | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
+        return (0, child_process_promise_1.exec)(`find '${workingDir}/boards' -type f -name "*.yaml" -printf "%h\n" | sort -u | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
     });
 }
 exports.countZephyrBoards = countZephyrBoards;
