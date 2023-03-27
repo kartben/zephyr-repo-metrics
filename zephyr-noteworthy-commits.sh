@@ -18,7 +18,7 @@ else
 fi
 
 eval "git log $commit_range --shortstat --oneline" \
-| awk '/^ [0-9]/ {insertions = $4} insertions >= 300 {print prev_line} {prev_line = $0}' \
+| awk '/^ [0-9]/ {insertions = $4} insertions >= 200 {print prev_line} {prev_line = $0}' \
 | grep -E "[0-9a-f]{10}" | grep -v -E "test(s?)(:?) " \
 | sort -k2 \
 | tee /dev/tty \
