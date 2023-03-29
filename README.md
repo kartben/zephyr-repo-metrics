@@ -40,6 +40,12 @@ The script will automatically clone or update the specified repositories and com
 
 You can customize the script by modifying the projects and snippets in the `projects.ts` and `snippets.ts` files. Add or modify the projects and snippets as needed to gather the desired statistics for your projects.
 
+## Ready to use dashboards and charts
+
+The `dashboard-files/` folder contains a Microsoft Excel spreadsheet ([`dashboard.xlsx`](/dashboard-files/dashboard.xlsx)) which you can use to directly access pivot tables and charts that make the data more visual. If you allow Excel to load external content, it will automatically sync-up the data with the latest version of the [`all.csv`](https://github.com/kartben/zephyr-repo-metrics/blob/statistics/stats/all.csv) file that lives in the `statistics` branch of this repository.
+
+Similarly, you may want to play with the Microsoft PowerBI [`dashboard.pbix`](/dashboard-files/dashboard.pbix).
+
 ## Contributing
 
 If you find any bugs, have feature requests, or would like to contribute, feel free to open an issue or submit a pull request on the repository.
