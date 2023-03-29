@@ -26,7 +26,7 @@ const multibar = new MultiBar({
     stopOnComplete: true,
     hideCursor: true,
     format: '{project} |' + ansiColors.cyan('{bar}') + '| {percentage}% | ETA: {eta}s | {stage}',
-    
+
     // support non-TTY environments (ex. Github Actions)
     noTTYOutput: true, 
     notTTYSchedule: 5000,
@@ -86,7 +86,7 @@ async function computeStats(project: IProject, progressBar: SingleBar) {
 
         progressBar.increment({stage: `${date}`});
     }
-    progressBar.update({stage: `✅`});
+    progressBar.update(progressBar.getTotal(), {stage: `✅`});
     return results;
 }
 

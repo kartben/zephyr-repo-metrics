@@ -110,7 +110,7 @@ function computeStats(project, progressBar) {
             });
             progressBar.increment({ stage: `${date}` });
         }
-        progressBar.update({ stage: `✅` });
+        progressBar.update(progressBar.getTotal(), { stage: `✅` });
         return results;
     });
 }
