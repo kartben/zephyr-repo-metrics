@@ -26,6 +26,10 @@ const multibar = new MultiBar({
     stopOnComplete: true,
     hideCursor: true,
     format: '{project} |' + ansiColors.cyan('{bar}') + '| {percentage}% | ETA: {eta}s | {stage}',
+    
+    // support non-TTY environments (ex. Github Actions)
+    noTTYOutput: true, 
+    notTTYSchedule: 5000,
 }, Presets.rect);
 
 async function computeStats(project: IProject, progressBar: SingleBar) {

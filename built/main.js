@@ -56,6 +56,9 @@ const multibar = new cli_progress_1.MultiBar({
     stopOnComplete: true,
     hideCursor: true,
     format: '{project} |' + ansi_colors_1.default.cyan('{bar}') + '| {percentage}% | ETA: {eta}s | {stage}',
+    // support non-TTY environments (ex. Github Actions)
+    noTTYOutput: true,
+    notTTYSchedule: 5000,
 }, cli_progress_1.Presets.rect);
 function computeStats(project, progressBar) {
     return __awaiter(this, void 0, void 0, function* () {
