@@ -43,4 +43,5 @@ jobs:
         branch: "statistics" 
         file_pattern: "stats/all.csv"
         skip_dirty_check: true
+        add_options: "--force"
        
