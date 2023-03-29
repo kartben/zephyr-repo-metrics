@@ -41,7 +41,4 @@ jobs:
       with:
         commit_message: "Update all.csv"
         branch: "statistics" 
-        file_pattern: "stats/all.csv"
-        skip_dirty_check: true
-        add_options: "--force"
-       
+        file_pattern: "stats/all.csv"       
