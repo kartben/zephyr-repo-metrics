@@ -35,3 +35,12 @@ jobs:
       with:
         name: all.csv
         path: stats/all.csv
+        
+    - name: Commit all.csv to the statistics branch
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "Update all.csv"
+        branch: "statistics" 
+        file_pattern: "stats/all.csv"
+        skip_dirty_check: true
+       
