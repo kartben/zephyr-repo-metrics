@@ -8,7 +8,8 @@ git fetch origin
 
 os_type="$(uname)"
 
-if [[ $# -eq 1 ]]; then
+
+if [[ $# -eq 1 ]] || ( [[ $# -eq 2 ]] && [[ -z "$2" ]] ); then
   commit_range="--since=\"$1\""
 elif [[ $# -eq 2 ]]; then
   commit_range="${1}..${2}"
@@ -21,12 +22,11 @@ eval "git log $commit_range --shortstat --oneline" \
 | awk '/^ [0-9]/ {insertions = $4} insertions >= 200 {print prev_line} {prev_line = $0}' \
 | grep -E "[0-9a-f]{10}" | grep -v -E "test(s?)(:?) " \
 | sort -k2 \
-| tee /dev/tty \
 | {
   if [[ "$os_type" == "Darwin" ]]; then
-    pbcopy
+    tee >(pbcopy)
   elif [[ "$os_type" == "Linux" ]] && grep -q microsoft /proc/version; then
-    clip.exe
+    tee >(clip.exe)
   else
     cat
   fi
