@@ -18,8 +18,14 @@ else
   exit 1
 fi
 
-eval "git log $commit_range --shortstat --oneline" \
-| awk '/^ [0-9]/ {insertions = $4} insertions >= 200 {print prev_line} {prev_line = $0}' \
+eval "git log $commit_range --pretty=format:\"%h %s\" --numstat" \
+| awk '\
+  BEGIN \
+    { commit = ""; added = 0; deleted = 0; } /^([a-f0-9]{7})/ { if(commit) { print_commit(); } \
+      commit = $0; added = 0; deleted = 0; next; } { added += $1; deleted += $2; } \
+  END \
+  { print_commit(); } \
+  function print_commit() { if((added >= 200 && deleted < 40) || added < 50 && deleted > 100) { print commit ; } }' \
 | grep -E "[0-9a-f]{10}" | grep -v -E "test(s?)(:?) " \
 | sort -k2 \
 | {
