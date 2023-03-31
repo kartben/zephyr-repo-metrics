@@ -1,0 +1,32 @@
+name: Run Zephyr Noteworthy Commits
+
+on:
+  workflow_dispatch:
+    inputs:
+      param1:
+        description: '[since] or [commit1]'
+        required: true
+      param2:
+        description: '[commit 2]'
+        required: false
+
+jobs:
+  run_script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Clone Zephyr repository
+      uses: actions/checkout@v2
+      with:
+        repository: zephyrproject-rtos/zephyr
+        path: ./repos/Zephyr
+
+    - name: Run zephyr-noteworthy-commits.sh script
+      env:
+        PARAM1: ${{ github.event.inputs.param1 }}
+        PARAM2: ${{ github.event.inputs.param2 }}
+      run: |
+        ./zephyr-noteworthy-commits.sh "$PARAM1" "$PARAM2"
