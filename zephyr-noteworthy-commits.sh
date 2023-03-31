@@ -25,7 +25,13 @@ eval "git log $commit_range --pretty=format:\"%h %s\" --numstat" \
       commit = $0; added = 0; deleted = 0; next; } { added += $1; deleted += $2; } \
   END \
   { print_commit(); } \
-  function print_commit() { if((added >= 200 && deleted < 40) || added < 50 && deleted > 100) { print commit ; } }' \
+  function print_commit() { \
+            if( (added >= 200 && deleted < 40) || \
+                (added >= 30 && deleted < 5)   || \
+                (added < 50 && deleted > 100)  || \
+                added > 500                    || \
+                deleted > 500 \
+            ) { print commit ; } }' \
 | grep -E "[0-9a-f]{10}" | grep -v -E "test(s?)(:?) " \
 | sort -k2 \
 | {
