@@ -40,7 +40,7 @@ async function countZephyrSamples(repo: SimpleGit): Promise<Number> {
 
 async function countZephyrBoards(repo: SimpleGit): Promise<Number> {
     let workingDir = await repo.revparse('--show-toplevel');
-    return exec(`find '${workingDir}/boards' -type f -name "*.yaml" -printf "%h\n" | sort -u | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
+    return exec(`find '${workingDir}/boards' -type f -name "*.dts" -exec grep -l "model =" {} \\; | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
 }
 
 // ----------------- //
