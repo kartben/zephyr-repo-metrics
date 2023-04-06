@@ -4,7 +4,8 @@ git_repo="./repos/Zephyr"
 
 pushd "$git_repo" > /dev/null
 
-git fetch origin
+git pull origin
+git checkout main
 
 os_type="$(uname)"
 
@@ -33,6 +34,7 @@ eval "git log $commit_range --pretty=format:\"%h %s\" --numstat" \
                 deleted > 500 \
             ) { print commit ; } }' \
 | grep -E "[0-9a-f]{10}" | grep -v -E "test(s?)(:?) " \
+| sed -E 's/([0-9a-f]{10})/\x1b]8;;https:\/\/github.com\/zephyrproject-rtos\/zephyr\/commit\/\1\x1b\\\1\x1b]8;;\x1b\\/g' \
 | sort -k2 \
 | {
   if [[ "$os_type" == "Darwin" ]]; then
