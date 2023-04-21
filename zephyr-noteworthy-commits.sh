@@ -46,6 +46,39 @@ eval "git log $commit_range --pretty=format:\"%h %s\" --numstat" \
   fi
 }
 
+echo
 git ls-remote origin main | awk '{ print "Latest commit taken into account:", $1 }'
+
+echo
+echo "********************************************"
+echo "First time contributors over the last 7 days"
+echo "********************************************"
+
+repo_url="https://github.com/zephyrproject-rtos/zephyr/commit"
+old_contributors=$(git log --before="7 days ago" --pretty=format:"%an" --all)
+all_contributors=$(git log --since="7 days ago" --pretty=format:"%H %an <%ae>" --all)
+
+# ANSI escape sequences for colors
+red="\033[31m"
+green="\033[32m"
+reset="\033[0m"
+
+echo "$all_contributors" | sort -k2,2 -u | while read -r commit_hash author_email; do
+    author_name=$(echo "$author_email" | sed 's/ <.*//')
+    if ! echo "$old_contributors" | grep -q -F "$author_name"; then
+        echo -e "${red}${author_email}${reset}"
+        echo "$all_contributors" | grep -F "$author_email" | while read -r commit_info; do
+            commit_hash=$(echo "$commit_info" | awk '{print $1}')
+            message=$(git log --pretty=format:"%h %s" -n 1 $commit_hash)
+            short_hash=$(echo "$message" | awk '{print $1}')
+            message=$(echo "$message" | awk '{$1=""; print substr($0, 2)}')
+            echo -e "${green}\e]8;;${repo_url}/${short_hash}\a[${short_hash}]\e]8;;\a${reset} $message"
+        done
+        echo ""
+    fi
+done
+
+
+
 
 popd > /dev/null
