@@ -55,8 +55,8 @@ echo "First time contributors over the last 7 days"
 echo "********************************************"
 
 repo_url="https://github.com/zephyrproject-rtos/zephyr/commit"
-old_contributors=$(git log --before="7 days ago" --pretty=format:"%an" --all)
-all_contributors=$(git log --since="7 days ago" --pretty=format:"%H %an <%ae>" --all)
+old_contributors=$(git log --before="7 days ago" --pretty=format:"%aN" --all)
+all_contributors=$(git log --since="7 days ago" --pretty=format:"%H %aN <%aE>" --all)
 
 # ANSI escape sequences for colors
 red="\033[31m"
