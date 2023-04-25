@@ -106,6 +106,24 @@ exports.countNuttXDrivers = countNuttXDrivers;
 // }
 let cloc = NULL_FUNCTION;
 exports.cloc = cloc;
+/**
+ * Returns a string with the before and after arguments for git log/shortlog etc.
+ * If the current day is the last day of the month, the after argument will be the last day of the previous month,
+ * otherwise it will be 30 days before the current day.
+ * @param context The context object
+ * @returns before and after arguments for git log/shortlog etc.
+ */
+function getBeforeAfter(context) {
+    let before = `--before=${context.moment.format('YYYY-MM-DD')}`;
+    let after;
+    if (context.moment.date() == context.moment.daysInMonth()) {
+        after = `--after=${context.moment.subtract(1, 'month').format('YYYY-MM-DD')}`;
+    }
+    else {
+        after = `--after=${context.moment.subtract(30, 'days').hour(0).minute(0).second(1).format('YYYY-MM-DD')}`;
+    }
+    return { before, after };
+}
 function numberOfCommits(repo) {
     return __awaiter(this, void 0, void 0, function* () {
         return repo.raw(['rev-list', 'HEAD', '--count', '--first-parent']).then((x) => { return parseInt(x); });
@@ -114,15 +132,15 @@ function numberOfCommits(repo) {
 exports.numberOfCommits = numberOfCommits;
 function numberOfCommitsPastMonth(repo, context) {
     return __awaiter(this, void 0, void 0, function* () {
-        let revRange = context.prevSHA1 ? `${context.prevSHA1}..HEAD` : 'HEAD';
-        return repo.raw(['rev-list', revRange, '--count', '--first-parent']).then((x) => { return parseInt(x); });
+        let { before, after } = getBeforeAfter(context);
+        return repo.raw(['rev-list', 'HEAD', before, after, '--count', '--first-parent']).then((x) => { return parseInt(x); });
     });
 }
 exports.numberOfCommitsPastMonth = numberOfCommitsPastMonth;
 function numberOfUniqueContributorsPastMonth(repo, context) {
     return __awaiter(this, void 0, void 0, function* () {
-        let revRange = context.prevSHA1 ? `${context.prevSHA1}..HEAD` : 'HEAD';
-        return repo.raw(['shortlog', '-sn', revRange]).then((x) => { return x.split(/\n/).length; });
+        let { before, after } = getBeforeAfter(context);
+        return repo.raw(['shortlog', '-sn', 'HEAD', before, after]).then((x) => { return x.split(/\n/).length; });
     });
 }
 exports.numberOfUniqueContributorsPastMonth = numberOfUniqueContributorsPastMonth;

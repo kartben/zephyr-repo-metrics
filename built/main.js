@@ -51,6 +51,8 @@ while (startingMoment.isBefore(beginningOfCurrentMonth)) {
     DATES.push(startingMoment.format('YYYY-MM-DD'));
     startingMoment.add(1, 'month').endOf('month');
 }
+// add "today" to also compute stats for the past 30 days
+DATES.push((0, moment_1.default)().format('YYYY-MM-DD'));
 const multibar = new cli_progress_1.MultiBar({
     //clearOnComplete: true,
     stopOnComplete: true,

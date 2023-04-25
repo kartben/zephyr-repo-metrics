@@ -88,18 +88,38 @@ async function countNuttXDrivers(repo: SimpleGit): Promise<Number> {
 // }
 let cloc = NULL_FUNCTION;
 
+/**
+ * Returns a string with the before and after arguments for git log/shortlog etc.
+ * If the current day is the last day of the month, the after argument will be the last day of the previous month,
+ * otherwise it will be 30 days before the current day.
+ * @param context The context object
+ * @returns before and after arguments for git log/shortlog etc.
+ */
+function getBeforeAfter(context: IAnalyticsSnippetContext): { before: string, after: string } {
+    let before: string = `--before=${context.moment.format('YYYY-MM-DD')}`;
+    let after: string;
+    if (context.moment.date() == context.moment.daysInMonth()) {
+        after = `--after=${context.moment.subtract(1, 'month').format('YYYY-MM-DD')}`;
+    } else {
+        after = `--after=${context.moment.subtract(30, 'days').hour(0).minute(0).second(1).format('YYYY-MM-DD')}`;
+    }
+    return { before, after };
+}
+
 async function numberOfCommits(repo: SimpleGit): Promise<Number> {
     return repo.raw(['rev-list', 'HEAD', '--count', '--first-parent']).then((x) => { return parseInt(x) });
 }
 
 async function numberOfCommitsPastMonth(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {
-    let revRange: string = context.prevSHA1 ? `${context.prevSHA1}..HEAD` : 'HEAD';
-    return repo.raw(['rev-list', revRange, '--count', '--first-parent']).then((x) => { return parseInt(x) });
+    let { before, after } = getBeforeAfter(context);
+
+    return repo.raw(['rev-list', 'HEAD', before, after, '--count', '--first-parent']).then((x) => { return parseInt(x) });
 }
 
 async function numberOfUniqueContributorsPastMonth(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {
-    let revRange: string = context.prevSHA1 ? `${context.prevSHA1}..HEAD` : 'HEAD';
-    return repo.raw(['shortlog', '-sn', revRange]).then((x) => { return x.split(/\n/).length });
+    let { before, after } = getBeforeAfter(context);
+    
+    return repo.raw(['shortlog', '-sn', 'HEAD', before, after]).then((x) => { return x.split(/\n/).length });
 }
 
 async function NULL_FUNCTION() { return null }
@@ -108,25 +128,25 @@ async function NULL_FUNCTION() { return null }
 export {
     countFoldersInSubFolder,
     getCountFoldersInSubFolderFn,
-    
+
     countFileByNameInFolder,
     getCountFileByNameInFolderFn,
-    
+
     countZephyrDrivers,
     countZephyrSamples,
     countZephyrBoards,
-    
+
     countFreeRTOSBoards,
-    
+
     countNuttXBoards,
     countNuttXDrivers,
-    
+
     cloc,
-    
+
     numberOfCommits,
     numberOfCommitsPastMonth,
-    
+
     numberOfUniqueContributorsPastMonth,
 
     NULL_FUNCTION
-  }
+}
