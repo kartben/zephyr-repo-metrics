@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -37,10 +39,10 @@ jobs:
         path: stats/all.csv
         
     - name: Commit all.csv to the statistics branch
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: "Update all.csv"
-        branch: "statistics" 
-        file_pattern: "stats/all.csv"
-        skip_dirty_check: true
-        add_options: "--force" 
+      run: |
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        git reset origin/statistics
+        git add stats/all.csv --force
+        git commit -m "Update all/stats.csv"
+        git push origin statistics
