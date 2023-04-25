@@ -128,7 +128,7 @@
         });
 
         function updateTitleWithDate(latestDate) {
-            const formattedDate = moment(latestDate, 'YYYY-MM').endOf('month').format('MMMM DD, YYYY');
+            const formattedDate = moment(latestDate, 'YYYY-MM-DD').format('MMMM DD, YYYY');
             $('h2').html(`Last Update: ${formattedDate}`);
         }
 
@@ -138,7 +138,7 @@
             let zephyrStats = {};
 
             zephyrData.forEach(row => {
-                const dateKey = moment(row.date).startOf('month').format('YYYY-MM');
+                const dateKey = moment(row.date).format('YYYY-MM-DD');
                 if (!zephyrStats[dateKey]) {
                     zephyrStats[dateKey] = {
                         numberOfUniqueContributors: 0,
@@ -159,7 +159,7 @@
 
             function generateCardText(current, prevMonth, prevQuarter, prevYear) {
                 const getSignAndColorClass = (percentage) => {
-                    const sign = percentage >= 0 ? '+' : '-';
+                    const sign = percentage >= 0 ? '+' : '';
                     const colorClass = Math.abs(percentage) >= 10 ? 'dark' : 'light';
 
                     return {
@@ -187,9 +187,9 @@
             const dateKeys = Object.keys(zephyrStats);
             const latestKey = dateKeys[dateKeys.length - 1];
             const latestData = zephyrStats[latestKey];
-            const prevMonthKey = moment(latestKey, 'YYYY-MM').subtract(1, 'month').format('YYYY-MM');
-            const prevQuarterKey = moment(latestKey, 'YYYY-MM').subtract(3, 'month').format('YYYY-MM');
-            const prevYearKey = moment(latestKey, 'YYYY-MM').subtract(12, 'month').format('YYYY-MM');
+            const prevMonthKey = moment(latestKey).subtract(1, 'month').endOf('month').format('YYYY-MM-DD');
+            const prevQuarterKey = moment(latestKey).subtract(3, 'month').endOf('month').format('YYYY-MM-DD');
+            const prevYearKey = moment(latestKey).subtract(12, 'month').endOf('month').format('YYYY-MM-DD');
 
             // Update dashboard cards
             $('#uniqueContributorsCard .card-text').html(generateCardText(
