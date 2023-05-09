@@ -20,7 +20,9 @@ while (startingMoment.isBefore(beginningOfCurrentMonth)) {
     DATES.push(startingMoment.format('YYYY-MM-DD'));
     startingMoment.add(1, 'month').endOf('month');
 }
-// add "today" and "today - 1 month" to also compute stats for actual Month-to-Month
+// add "today", "today - 1 month" and "today - 1 year" to also compute stats for actual Month-to-Month 
+// and Year-to-Year comparisons vs. today
+DATES.push(moment().subtract(1, 'year').format('YYYY-MM-DD'));
 DATES.push(moment().subtract(1, 'month').format('YYYY-MM-DD'));
 DATES.push(moment().format('YYYY-MM-DD'));
 

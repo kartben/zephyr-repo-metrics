@@ -127,8 +127,6 @@ function getBeforeAfter(context) {
     else {
         after = `--after=${context.moment.subtract(1, 'month').format('YYYY-MM-DD')}`;
     }
-    if (after.indexOf('2023') > 0)
-        console.log(`before: ${before}, after: ${after}`);
     return { before, after };
 }
 function numberOfCommits(repo) {
