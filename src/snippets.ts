@@ -95,7 +95,7 @@ async function loc(repo: SimpleGit): Promise<Number> {
 /**
  * Returns a string with the before and after arguments for git log/shortlog etc.
  * If the current day is the last day of the month, the after argument will be the last day of the previous month,
- * otherwise it will be 30 days before the current day.
+ * otherwise it will be exactly 1 month before the current day.
  * @param context The context object
  * @returns before and after arguments for git log/shortlog etc.
  */
@@ -103,9 +103,9 @@ function getBeforeAfter(context: IAnalyticsSnippetContext): { before: string, af
     let before: string = `--before=${context.moment.format('YYYY-MM-DD')}`;
     let after: string;
     if (context.moment.date() == context.moment.daysInMonth()) {
-        after = `--after=${context.moment.subtract(1, 'month').format('YYYY-MM-DD')}`;
+        after = `--after=${context.moment.subtract(1, 'month').endOf('month').format('YYYY-MM-DD')}`;
     } else {
-        after = `--after=${context.moment.subtract(30, 'days').hour(0).minute(0).second(1).format('YYYY-MM-DD')}`;
+        after = `--after=${context.moment.subtract(1, 'month').format('YYYY-MM-DD')}`;
     }
     return { before, after };
 }
