@@ -74,19 +74,23 @@ async function countNuttXDrivers(repo: SimpleGit): Promise<Number> {
 
 
 
-// async function cloc(repo: SimpleGit): Promise<Number> {
-//     let workingDir = await repo.revparse('--show-toplevel');
-//     return exec(`cloc '${workingDir}' --json --quiet`).then((res: any) => { 
-//         try {
-//             let out = JSON.parse(res.stdout) ; 
-//             return out.SUM.code + out.SUM.comment
-//         }
-//         catch {
-//             return null;
-//         }
-//     });
-// }
-let cloc = NULL_FUNCTION;
+async function loc(repo: SimpleGit): Promise<Number> {
+    let workingDir = await repo.revparse('--show-toplevel');
+    return exec(`scc '${workingDir}' -f json`).then((res: any) => { 
+        try {
+            let out = JSON.parse(res.stdout) ; 
+            const sumOfLines = out.reduce((accumulator: number, currentValue: any) => {
+                return accumulator + currentValue.Lines;
+              }, 0);
+
+              return sumOfLines;
+        }
+        catch {
+            return null;
+        }
+    });
+}
+// let loc = NULL_FUNCTION;
 
 /**
  * Returns a string with the before and after arguments for git log/shortlog etc.
@@ -141,7 +145,7 @@ export {
     countNuttXBoards,
     countNuttXDrivers,
 
-    cloc,
+    loc,
 
     numberOfCommits,
     numberOfCommitsPastMonth,

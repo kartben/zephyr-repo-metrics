@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NULL_FUNCTION = exports.numberOfUniqueContributorsPastMonth = exports.numberOfCommitsPastMonth = exports.numberOfCommits = exports.cloc = exports.countNuttXDrivers = exports.countNuttXBoards = exports.countFreeRTOSBoards = exports.countZephyrBoards = exports.countZephyrSamples = exports.countZephyrDrivers = exports.getCountFileByNameInFolderFn = exports.countFileByNameInFolder = exports.getCountFoldersInSubFolderFn = exports.countFoldersInSubFolder = void 0;
+exports.NULL_FUNCTION = exports.numberOfUniqueContributorsPastMonth = exports.numberOfCommitsPastMonth = exports.numberOfCommits = exports.loc = exports.countNuttXDrivers = exports.countNuttXBoards = exports.countFreeRTOSBoards = exports.countZephyrBoards = exports.countZephyrSamples = exports.countZephyrDrivers = exports.getCountFileByNameInFolderFn = exports.countFileByNameInFolder = exports.getCountFoldersInSubFolderFn = exports.countFoldersInSubFolder = void 0;
 const child_process_promise_1 = require("child-process-promise");
 function countFoldersInSubFolder(repo, subfolder) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -92,20 +92,25 @@ function countNuttXDrivers(repo) {
     });
 }
 exports.countNuttXDrivers = countNuttXDrivers;
-// async function cloc(repo: SimpleGit): Promise<Number> {
-//     let workingDir = await repo.revparse('--show-toplevel');
-//     return exec(`cloc '${workingDir}' --json --quiet`).then((res: any) => { 
-//         try {
-//             let out = JSON.parse(res.stdout) ; 
-//             return out.SUM.code + out.SUM.comment
-//         }
-//         catch {
-//             return null;
-//         }
-//     });
-// }
-let cloc = NULL_FUNCTION;
-exports.cloc = cloc;
+function loc(repo) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let workingDir = yield repo.revparse('--show-toplevel');
+        return (0, child_process_promise_1.exec)(`scc '${workingDir}' -f json`).then((res) => {
+            try {
+                let out = JSON.parse(res.stdout);
+                const sumOfLines = out.reduce((accumulator, currentValue) => {
+                    return accumulator + currentValue.Lines;
+                }, 0);
+                return sumOfLines;
+            }
+            catch (_a) {
+                return null;
+            }
+        });
+    });
+}
+exports.loc = loc;
+// let loc = NULL_FUNCTION;
 /**
  * Returns a string with the before and after arguments for git log/shortlog etc.
  * If the current day is the last day of the month, the after argument will be the last day of the previous month,
