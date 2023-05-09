@@ -19,14 +19,14 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Install scc (https://github.com/boyter/scc)
+      run: sudo snap install scc
+
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '16.x'
         cache: 'npm'
-
-    - name: Install CLOC
-      run: sudo apt-get update && sudo apt-get install -y cloc
 
     - run: npm ci
 
