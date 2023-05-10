@@ -30,7 +30,7 @@ function getCountFileByNameInFolderFn(subfolder: string, fileName: string) {
 
 async function countZephyrDrivers(repo: SimpleGit): Promise<Number> {
     let workingDir = await repo.revparse('--show-toplevel');
-    return exec(`find '${workingDir}/dts/bindings/sensor' -type f | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
+    return exec(`find '${workingDir}/dts/bindings/sensor' -type f -exec grep "compatible" {} \\; | sort -u | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
 }
 
 async function countZephyrSamples(repo: SimpleGit): Promise<Number> {

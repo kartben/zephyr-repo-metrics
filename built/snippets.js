@@ -43,7 +43,7 @@ exports.getCountFileByNameInFolderFn = getCountFileByNameInFolderFn;
 function countZephyrDrivers(repo) {
     return __awaiter(this, void 0, void 0, function* () {
         let workingDir = yield repo.revparse('--show-toplevel');
-        return (0, child_process_promise_1.exec)(`find '${workingDir}/dts/bindings/sensor' -type f | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
+        return (0, child_process_promise_1.exec)(`find '${workingDir}/dts/bindings/sensor' -type f -exec grep "compatible" {} \\; | sort -u | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
     });
 }
 exports.countZephyrDrivers = countZephyrDrivers;
