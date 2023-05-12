@@ -21,13 +21,13 @@ const BLOG_URL = 'https://blog.benjamin-cabe.com';
 const TAG = 529; //'zephyr-weekly-update';
 function getMostRecentPostDate(tag) {
     return __awaiter(this, void 0, void 0, function* () {
-        const apiUrl = `${BLOG_URL}/wp-json/wp/v2/posts?tags=${tag}&per_page=1&_fields=date`;
+        const apiUrl = `${BLOG_URL}/wp-json/wp/v2/posts?tags=${tag}&per_page=1&_fields=date_gmt`;
         console.log(apiUrl);
         try {
             const response = yield (0, node_fetch_1.default)(apiUrl);
             const data = yield response.json();
             if (data.length > 0) {
-                return data[0].date;
+                return data[0].date_gmt;
             }
         }
         catch (error) {
@@ -79,16 +79,19 @@ function listCommits() {
                 if (((added - deleted) > 100) ||
                     ((deleted - added) > 50) ||
                     (added >= 30 && deleted < 5) ||
-                    added > 200 ||
-                    deleted > 200) {
-                    let specialFlag = '';
-                    if (added - deleted > 300) {
-                        specialFlag = '🚀 ';
+                    added > 150 ||
+                    deleted > 150) {
+                    let specialFlag = '🔘';
+                    if (['fix', 'bug'].some((keyword) => pr.title.toLowerCase().includes(keyword))) {
+                        specialFlag = '🪳';
+                    }
+                    else if (added - deleted > 300) {
+                        specialFlag = '🚀';
                     }
                     else if (added > 300) {
-                        specialFlag = '⚙️ ';
+                        specialFlag = '⚙️';
                     }
-                    console.log(chalk_1.default.green(`- ${specialFlag}${prLink}`, `${pr.title}`), chalk_1.default.green(`+${added}`), chalk_1.default.red(`-${deleted}`));
+                    console.log(chalk_1.default.green(`${specialFlag} ${prLink}`, `${pr.title}`), chalk_1.default.green(`+${added}`), chalk_1.default.red(`-${deleted}`));
                     // list all commits in the pull request
                     const commits = yield octokit.rest.pulls.listCommits({
                         owner,
@@ -101,7 +104,7 @@ function listCommits() {
                     }
                 }
                 else {
-                    console.log(chalk_1.default.grey(`- ${prLink}`, `${pr.title}`), chalk_1.default.green.dim(`+${added}`), chalk_1.default.red.dim(`-${deleted}`));
+                    console.log(chalk_1.default.grey(`🔘 ${prLink}`, `${pr.title}`), chalk_1.default.green.dim(`+${added}`), chalk_1.default.red.dim(`-${deleted}`));
                 }
             }
         }

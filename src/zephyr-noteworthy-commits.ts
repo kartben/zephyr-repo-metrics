@@ -9,11 +9,11 @@ const BLOG_URL = 'https://blog.benjamin-cabe.com';
 const TAG = 529; //'zephyr-weekly-update';
 
 interface WPPost {
-    date: string;
+    date_gmt: string;
 }
 
 async function getMostRecentPostDate(tag: number): Promise<string | null> {
-    const apiUrl = `${BLOG_URL}/wp-json/wp/v2/posts?tags=${tag}&per_page=1&_fields=date`;
+    const apiUrl = `${BLOG_URL}/wp-json/wp/v2/posts?tags=${tag}&per_page=1&_fields=date_gmt`;
 
     console.log(apiUrl)
 
@@ -22,7 +22,7 @@ async function getMostRecentPostDate(tag: number): Promise<string | null> {
         const data: WPPost[] = await response.json() as WPPost[];
 
         if (data.length > 0) {
-            return data[0].date;
+            return data[0].date_gmt;
         }
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -56,7 +56,7 @@ async function listCommits() {
     });
 
     console.log(`Found ${searchResult.length} pull requests merged since ${sinceDate}`);
-  
+
     // Sort pull requests by title
     searchResult.sort((a, b) => {
         return a.title.localeCompare(b.title);
@@ -85,17 +85,24 @@ async function listCommits() {
             if (((added - deleted) > 100) ||
                 ((deleted - added) > 50) ||
                 (added >= 30 && deleted < 5) ||
-                added > 200 ||
-                deleted > 200) {
+                added > 150 ||
+                deleted > 150) {
 
-                let specialFlag = '';
-                if (added - deleted > 300) {
-                    specialFlag = '🚀 ';
+                let specialFlag = '🔘';
+                if (['fix', 'bug'].some((keyword) => pr.title.toLowerCase().includes(keyword))) {
+                    specialFlag = '🪳';
+                } else if (added - deleted > 300) {
+                    specialFlag = '🚀';
                 } else if (added > 300) {
-                    specialFlag = '⚙️ ';
+                    specialFlag = '⚙️';
                 }
 
-                console.log(chalk.green(`- ${specialFlag}${prLink}`, `${pr.title}`), chalk.green(`+${added}`), chalk.red(`-${deleted}`));
+                console.log(
+                    chalk.green(`${specialFlag} ${prLink}`, `${pr.title}`),
+                    chalk.green(`+${added}`),
+                    chalk.red(`-${deleted}`),
+                    //pr.labels.map((label) => chalk.bgHex(label.color || '#000').black(label.name)).join(' ')
+                );
 
                 // list all commits in the pull request
                 const commits = await octokit.rest.pulls.listCommits({
@@ -111,7 +118,7 @@ async function listCommits() {
                     console.log(`  - ${chalk.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                 }
             } else {
-                console.log(chalk.grey(`- ${prLink}`, `${pr.title}`), chalk.green.dim(`+${added}`), chalk.red.dim(`-${deleted}`));
+                console.log(chalk.grey(`🔘 ${prLink}`, `${pr.title}`), chalk.green.dim(`+${added}`), chalk.red.dim(`-${deleted}`));
             }
         }
     };
