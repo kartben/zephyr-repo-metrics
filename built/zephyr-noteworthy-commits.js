@@ -45,7 +45,7 @@ const owner = 'zephyrproject-rtos';
 const repo = 'zephyr';
 const SHOW_COMMIT_DETAILS = true;
 function listCommits() {
-    var _a;
+    var _a, _b, _c, _d, _e, _f;
     return __awaiter(this, void 0, void 0, function* () {
         const sinceDate = yield getMostRecentPostDate(TAG);
         // Use github search API to get the list of all pull requests merged since the last blog post
@@ -62,8 +62,19 @@ function listCommits() {
         });
         // List pull request numbers, titles and links
         for (const pr of searchResult) {
+            // check if this PR is author's first merged PR using GH Search API
+            // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests
+            const author = (_a = pr.user) === null || _a === void 0 ? void 0 : _a.login;
+            let isFirstPR = false;
+            if (author) {
+                const query = `repo:${owner}/${repo} is:pr is:merged author:${author} closed:<=${pr.closed_at}`;
+                const { status: searchStatus, data: searchResults } = yield octokit.rest.search.issuesAndPullRequests({ q: query });
+                if (searchResults.total_count === 1) {
+                    isFirstPR = true;
+                }
+            }
             // Fetch the diff corresponding to the pull request
-            const diffUrl = (_a = pr.pull_request) === null || _a === void 0 ? void 0 : _a.diff_url;
+            const diffUrl = (_b = pr.pull_request) === null || _b === void 0 ? void 0 : _b.diff_url;
             if (diffUrl) {
                 const response = yield (0, node_fetch_1.default)(diffUrl);
                 const diff = yield response.text();
@@ -91,7 +102,11 @@ function listCommits() {
                     else if (added > 300) {
                         specialFlag = '⚙️';
                     }
-                    console.log(chalk_1.default.green(`${specialFlag} ${prLink}`, `${pr.title}`), chalk_1.default.green(`+${added}`), chalk_1.default.red(`-${deleted}`));
+                    console.log(chalk_1.default.green(`${specialFlag} ${prLink}`, `${pr.title}`), chalk_1.default.green(`+${added}`), chalk_1.default.red(`-${deleted}`), 
+                    //pr.labels.map((label) => chalk.bgHex(label.color || '#000').black(label.name)).join(' ')
+                    isFirstPR ?
+                        chalk_1.default.bold(`(@${(_c = pr.user) === null || _c === void 0 ? void 0 : _c.login} 🆕)`) :
+                        `(@${(_d = pr.user) === null || _d === void 0 ? void 0 : _d.login})`);
                     // list all commits in the pull request
                     const commits = yield octokit.rest.pulls.listCommits({
                         owner,
@@ -104,7 +119,9 @@ function listCommits() {
                     }
                 }
                 else {
-                    console.log(chalk_1.default.grey(`🔘 ${prLink}`, `${pr.title}`), chalk_1.default.green.dim(`+${added}`), chalk_1.default.red.dim(`-${deleted}`));
+                    console.log(chalk_1.default.grey(`🔘 ${prLink}`, `${pr.title}`), chalk_1.default.green.dim(`+${added}`), chalk_1.default.red.dim(`-${deleted}`), isFirstPR ?
+                        chalk_1.default.bold(`(@${(_e = pr.user) === null || _e === void 0 ? void 0 : _e.login} 🆕)`) :
+                        chalk_1.default.grey(`(@${(_f = pr.user) === null || _f === void 0 ? void 0 : _f.login})`));
                 }
             }
         }

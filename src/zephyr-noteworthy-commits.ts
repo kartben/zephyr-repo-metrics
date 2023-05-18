@@ -64,6 +64,18 @@ async function listCommits() {
 
     // List pull request numbers, titles and links
     for (const pr of searchResult) {
+        // check if this PR is author's first merged PR using GH Search API
+        // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests
+        const author = pr.user?.login;
+        let isFirstPR = false;
+        if (author) {
+            const query = `repo:${owner}/${repo} is:pr is:merged author:${author} closed:<=${pr.closed_at}`;
+            const { status: searchStatus, data: searchResults } = await octokit.rest.search.issuesAndPullRequests({ q: query });
+            if (searchResults.total_count === 1) {
+                isFirstPR = true;
+            }
+        }
+
         // Fetch the diff corresponding to the pull request
         const diffUrl = pr.pull_request?.diff_url;
         if (diffUrl) {
@@ -102,6 +114,9 @@ async function listCommits() {
                     chalk.green(`+${added}`),
                     chalk.red(`-${deleted}`),
                     //pr.labels.map((label) => chalk.bgHex(label.color || '#000').black(label.name)).join(' ')
+                    isFirstPR ?
+                        chalk.bold(`(@${pr.user?.login} 🆕)`) :
+                        `(@${pr.user?.login})`
                 );
 
                 // list all commits in the pull request
@@ -118,7 +133,14 @@ async function listCommits() {
                     console.log(`  - ${chalk.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                 }
             } else {
-                console.log(chalk.grey(`🔘 ${prLink}`, `${pr.title}`), chalk.green.dim(`+${added}`), chalk.red.dim(`-${deleted}`));
+                console.log(chalk.grey(`🔘 ${prLink}`,
+                    `${pr.title}`),
+                    chalk.green.dim(`+${added}`),
+                    chalk.red.dim(`-${deleted}`),
+                    isFirstPR ?
+                        chalk.bold(`(@${pr.user?.login} 🆕)`) :
+                        chalk.grey(`(@${pr.user?.login})`)
+                );
             }
         }
     };
