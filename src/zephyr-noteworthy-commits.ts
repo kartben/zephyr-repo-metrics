@@ -1,4 +1,5 @@
 import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
+import { throttling } from "@octokit/plugin-throttling";
 
 import chalk from 'chalk';
 import terminalLink from 'terminal-link';
@@ -34,8 +35,19 @@ async function getMostRecentPostDate(tag: number): Promise<string | null> {
 // get GitHub API token from environment variable
 const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 
-const octokit = new Octokit({
-    auth: GITHUB_API_TOKEN
+const MyOctokit = Octokit.plugin(throttling);
+const octokit = new MyOctokit({
+    auth: GITHUB_API_TOKEN,
+    throttle: {
+        onSecondaryRateLimit: (retryAfter, options) => {
+            return true;
+        },
+        onRateLimit: (retryAfter, options, octokit, retryCount) => {
+            if (retryCount < 5) {
+                return true;
+            }
+        }
+    },
 });
 
 const owner = 'zephyrproject-rtos';
