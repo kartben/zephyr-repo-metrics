@@ -4,8 +4,7 @@ import moment from 'moment';
 import { access, constants } from 'node:fs/promises';
 import { MultiBar, Presets, SingleBar } from 'cli-progress';
 import ansiColors from 'ansi-colors';
-import { exec } from 'child-process-promise';
-import fs, { writeFileSync, appendFileSync, mkdirSync } from 'fs';
+import fs from 'fs';
 
 import { IAnalyticsSnippet, IProject, IResults } from './interfaces';
 import * as snippets from './snippets';
