@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const rest_1 = require("@octokit/rest");
 const plugin_throttling_1 = require("@octokit/plugin-throttling");
-const chalk_1 = __importDefault(require("chalk"));
+const ansi_colors_1 = __importDefault(require("ansi-colors"));
 const terminal_link_1 = __importDefault(require("terminal-link"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const parse_diff_1 = __importDefault(require("parse-diff"));
@@ -114,11 +114,16 @@ function listCommits() {
                     else if (added > 300) {
                         specialFlag = '⚙️';
                     }
-                    console.log(chalk_1.default.green(`${specialFlag} ${prLink}`, `${pr.title}`), chalk_1.default.green(`+${added}`), chalk_1.default.red(`-${deleted}`), 
-                    //pr.labels.map((label) => chalk.bgHex(label.color || '#000').black(label.name)).join(' ')
-                    isFirstPR ?
-                        chalk_1.default.bold(`(@${(_c = pr.user) === null || _c === void 0 ? void 0 : _c.login} 🆕)`) :
-                        `(@${(_d = pr.user) === null || _d === void 0 ? void 0 : _d.login})`);
+                    let highlight = (isFirstPR) ? ansi_colors_1.default.bold : ansi_colors_1.default.reset;
+                    console.log([
+                        ansi_colors_1.default.green(`${specialFlag} ${prLink} ${pr.title}`),
+                        ansi_colors_1.default.green(`+${added}`),
+                        ansi_colors_1.default.red(`-${deleted}`),
+                        //pr.labels.map((label) => c.bgHex(label.color || '#000').black(label.name)).join(' ')
+                        isFirstPR ?
+                            ansi_colors_1.default.bold(`(@${(_c = pr.user) === null || _c === void 0 ? void 0 : _c.login} 🆕)`) :
+                            `(@${(_d = pr.user) === null || _d === void 0 ? void 0 : _d.login})`
+                    ].map(highlight).join(' '));
                     // list all commits in the pull request
                     const commits = yield octokit.rest.pulls.listCommits({
                         owner,
@@ -127,13 +132,13 @@ function listCommits() {
                     });
                     for (const commit of commits.data) {
                         const commitLink = (0, terminal_link_1.default)(commit.sha.substring(0, 7), `https://github.com/${owner}/${repo}/commit/${commit.sha}`);
-                        console.log(`  - ${chalk_1.default.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
+                        console.log(`  - ${ansi_colors_1.default.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                     }
                 }
                 else {
-                    console.log(chalk_1.default.grey(`🔘 ${prLink}`, `${pr.title}`), chalk_1.default.green.dim(`+${added}`), chalk_1.default.red.dim(`-${deleted}`), isFirstPR ?
-                        chalk_1.default.bold(`(@${(_e = pr.user) === null || _e === void 0 ? void 0 : _e.login} 🆕)`) :
-                        chalk_1.default.grey(`(@${(_f = pr.user) === null || _f === void 0 ? void 0 : _f.login})`));
+                    console.log(ansi_colors_1.default.grey(`🔘 ${prLink} ${pr.title}`), ansi_colors_1.default.green.dim(`+${added}`), ansi_colors_1.default.red.dim(`-${deleted}`), isFirstPR ?
+                        ansi_colors_1.default.bold(`(@${(_e = pr.user) === null || _e === void 0 ? void 0 : _e.login} 🆕)`) :
+                        ansi_colors_1.default.grey(`(@${(_f = pr.user) === null || _f === void 0 ? void 0 : _f.login})`));
                 }
             }
         }

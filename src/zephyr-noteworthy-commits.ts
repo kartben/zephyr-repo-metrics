@@ -1,7 +1,7 @@
 import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
 import { throttling } from "@octokit/plugin-throttling";
 
-import chalk from 'chalk';
+import c from 'ansi-colors';
 import terminalLink from 'terminal-link';
 import fetch from 'node-fetch';
 import parseDiff from 'parse-diff';
@@ -121,14 +121,17 @@ async function listCommits() {
                     specialFlag = '⚙️';
                 }
 
-                console.log(
-                    chalk.green(`${specialFlag} ${prLink}`, `${pr.title}`),
-                    chalk.green(`+${added}`),
-                    chalk.red(`-${deleted}`),
-                    //pr.labels.map((label) => chalk.bgHex(label.color || '#000').black(label.name)).join(' ')
+                let highlight = (isFirstPR) ? c.bold : c.reset;
+
+                console.log([
+                    c.green(`${specialFlag} ${prLink} ${pr.title}`),
+                    c.green(`+${added}`),
+                    c.red(`-${deleted}`),
+                    //pr.labels.map((label) => c.bgHex(label.color || '#000').black(label.name)).join(' ')
                     isFirstPR ?
-                        chalk.bold(`(@${pr.user?.login} 🆕)`) :
+                        c.bold(`(@${pr.user?.login} 🆕)`) :
                         `(@${pr.user?.login})`
+                ].map(highlight).join(' ')
                 );
 
                 // list all commits in the pull request
@@ -142,16 +145,15 @@ async function listCommits() {
                         commit.sha.substring(0, 7),
                         `https://github.com/${owner}/${repo}/commit/${commit.sha}`
                     );
-                    console.log(`  - ${chalk.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
+                    console.log(`  - ${c.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                 }
             } else {
-                console.log(chalk.grey(`🔘 ${prLink}`,
-                    `${pr.title}`),
-                    chalk.green.dim(`+${added}`),
-                    chalk.red.dim(`-${deleted}`),
+                console.log(c.grey(`🔘 ${prLink} ${pr.title}`),
+                    c.green.dim(`+${added}`),
+                    c.red.dim(`-${deleted}`),
                     isFirstPR ?
-                        chalk.bold(`(@${pr.user?.login} 🆕)`) :
-                        chalk.grey(`(@${pr.user?.login})`)
+                        c.bold(`(@${pr.user?.login} 🆕)`) :
+                        c.grey(`(@${pr.user?.login})`)
                 );
             }
         }
