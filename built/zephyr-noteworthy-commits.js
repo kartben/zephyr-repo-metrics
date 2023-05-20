@@ -147,7 +147,7 @@ function listCommits() {
         ;
         console.log();
         console.log();
-        console.log(`The following ${firstTimeContributors.length} contributors had their first PR merged on the period:\n`);
+        console.log(`The following ${firstTimeContributors.length} contributors had their first pull requet(s) merged on the period:\n`);
         for (const author of firstTimeContributors) {
             if (author) {
                 // get more info about the author
