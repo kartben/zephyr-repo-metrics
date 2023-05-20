@@ -72,6 +72,7 @@ function listCommits() {
         searchResult.sort((a, b) => {
             return a.title.localeCompare(b.title);
         });
+        let firstTimeContributors = [];
         // List pull request numbers, titles and links
         for (const pr of searchResult) {
             // check if this PR is author's first merged PR using GH Search API
@@ -82,6 +83,7 @@ function listCommits() {
                 const query = `repo:${owner}/${repo} is:pr is:merged author:${author} closed:<=${pr.closed_at}`;
                 const { status: searchStatus, data: searchResults } = yield octokit.rest.search.issuesAndPullRequests({ q: query });
                 if (searchResults.total_count === 1) {
+                    firstTimeContributors.push(pr.user);
                     isFirstPR = true;
                 }
             }
@@ -98,17 +100,17 @@ function listCommits() {
                     added += file.additions;
                     deleted += file.deletions;
                 });
+                let specialFlag = '🔘';
+                if (['fix', 'bug', 'issue'].some((keyword) => pr.title.toLowerCase().includes(keyword))) {
+                    specialFlag = '🐛';
+                }
                 const prLink = (0, terminal_link_1.default)(`#${pr.number}`, `https://github.com/${owner}/${repo}/pull/${pr.number}`);
                 if (((added - deleted) > 100) ||
                     ((deleted - added) > 50) ||
                     (added >= 30 && deleted < 5) ||
                     added > 150 ||
                     deleted > 150) {
-                    let specialFlag = '🔘';
-                    if (['fix', 'bug'].some((keyword) => pr.title.toLowerCase().includes(keyword))) {
-                        specialFlag = '🪳';
-                    }
-                    else if (added - deleted > 300) {
+                    if (added - deleted > 300) {
                         specialFlag = '🚀';
                     }
                     else if (added > 300) {
@@ -136,13 +138,39 @@ function listCommits() {
                     }
                 }
                 else {
-                    console.log(ansi_colors_1.default.grey(`🔘 ${prLink} ${pr.title}`), ansi_colors_1.default.green.dim(`+${added}`), ansi_colors_1.default.red.dim(`-${deleted}`), isFirstPR ?
+                    console.log(ansi_colors_1.default.grey(`${specialFlag} ${prLink} ${pr.title}`), ansi_colors_1.default.green.dim(`+${added}`), ansi_colors_1.default.red.dim(`-${deleted}`), isFirstPR ?
                         ansi_colors_1.default.bold(`(@${(_e = pr.user) === null || _e === void 0 ? void 0 : _e.login} 🆕)`) :
                         ansi_colors_1.default.grey(`(@${(_f = pr.user) === null || _f === void 0 ? void 0 : _f.login})`));
                 }
             }
         }
         ;
+        console.log();
+        console.log();
+        console.log(`The following ${firstTimeContributors.length} contributors had their first PR merged on the period:\n`);
+        for (const author of firstTimeContributors) {
+            if (author) {
+                // get more info about the author
+                const { data: authorData } = yield octokit.rest.users.getByUsername({
+                    username: author.login,
+                });
+                let authorLink = (0, terminal_link_1.default)('@' + (author === null || author === void 0 ? void 0 : author.login) || '', (author === null || author === void 0 ? void 0 : author.html_url) || '');
+                if (authorData.name) {
+                    console.log(`🧑🏼‍💻 ${authorLink} // 🪪  ${authorData.name}`, (author.email ? `<${author.email}>` : ''));
+                }
+                else
+                    console.log(`🧑🏼‍💻 ${authorLink}`);
+                if (authorData.company)
+                    console.log(`   🏢 ${authorData.company}`);
+                if (authorData.location)
+                    console.log(`   🌍 ${authorData.location}`);
+                if (authorData.blog)
+                    console.log(`   📝 ${authorData.blog}`);
+                if (authorData.twitter_username)
+                    console.log(`   🐦 ${authorData.twitter_username}`);
+                console.log();
+            }
+        }
     });
 }
 listCommits();

@@ -57,7 +57,7 @@ const SHOW_COMMIT_DETAILS = true;
 
 async function listCommits() {
     const sinceDate = await getMostRecentPostDate(TAG);
-
+    
     // Use github search API to get the list of all pull requests merged since the last blog post
     // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests
     const query = `repo:${owner}/${repo} is:pr is:merged merged:>${sinceDate}`;
@@ -74,6 +74,8 @@ async function listCommits() {
         return a.title.localeCompare(b.title);
     });
 
+    let firstTimeContributors = [];
+
     // List pull request numbers, titles and links
     for (const pr of searchResult) {
         // check if this PR is author's first merged PR using GH Search API
@@ -84,6 +86,7 @@ async function listCommits() {
             const query = `repo:${owner}/${repo} is:pr is:merged author:${author} closed:<=${pr.closed_at}`;
             const { status: searchStatus, data: searchResults } = await octokit.rest.search.issuesAndPullRequests({ q: query });
             if (searchResults.total_count === 1) {
+                firstTimeContributors.push(pr.user);
                 isFirstPR = true;
             }
         }
@@ -102,20 +105,23 @@ async function listCommits() {
                 deleted += file.deletions;
             });
 
+            let specialFlag = '🔘';
+            if (['fix', 'bug', 'issue'].some((keyword) => pr.title.toLowerCase().includes(keyword))) {
+                specialFlag = '🐛';
+            }
+
             const prLink = terminalLink(
                 `#${pr.number}`,
                 `https://github.com/${owner}/${repo}/pull/${pr.number}`
             );
+
             if (((added - deleted) > 100) ||
                 ((deleted - added) > 50) ||
                 (added >= 30 && deleted < 5) ||
                 added > 150 ||
                 deleted > 150) {
 
-                let specialFlag = '🔘';
-                if (['fix', 'bug'].some((keyword) => pr.title.toLowerCase().includes(keyword))) {
-                    specialFlag = '🪳';
-                } else if (added - deleted > 300) {
+                if (added - deleted > 300) {
                     specialFlag = '🚀';
                 } else if (added > 300) {
                     specialFlag = '⚙️';
@@ -148,7 +154,7 @@ async function listCommits() {
                     console.log(`  - ${c.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                 }
             } else {
-                console.log(c.grey(`🔘 ${prLink} ${pr.title}`),
+                console.log(c.grey(`${specialFlag} ${prLink} ${pr.title}`),
                     c.green.dim(`+${added}`),
                     c.red.dim(`-${deleted}`),
                     isFirstPR ?
@@ -158,6 +164,43 @@ async function listCommits() {
             }
         }
     };
+
+    console.log(); console.log();
+
+    console.log(`The following ${firstTimeContributors.length} contributors had their first PR merged on the period:\n`);
+
+    for (const author of firstTimeContributors) {
+        if (author) {
+            // get more info about the author
+            const { data: authorData } = await octokit.rest.users.getByUsername({
+                username: author.login,
+            });
+
+            let authorLink = terminalLink('@' + author?.login || '', author?.html_url || '');
+            if (authorData.name) {
+                console.log(
+                    `🧑🏼‍💻 ${authorLink} // 🪪  ${authorData.name}`,
+                    (author.email ? `<${author.email}>` : '')
+                );
+            }
+            else
+                console.log(`🧑🏼‍💻 ${authorLink}`);
+
+            if (authorData.company)
+                console.log(`   🏢 ${authorData.company}`);
+
+            if (authorData.location)
+                console.log(`   🌍 ${authorData.location}`);
+
+            if (authorData.blog)
+                console.log(`   📝 ${authorData.blog}`);
+
+            if (authorData.twitter_username)
+                console.log(`   🐦 ${authorData.twitter_username}`);
+
+            console.log();
+        }
+    }
 }
 
 listCommits();
