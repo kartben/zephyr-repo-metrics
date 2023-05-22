@@ -188,7 +188,7 @@ async function listCommits() {
             let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
             let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
 
-            console.log(`🧑🏼‍💻 ${authorLink} // 🪪  ${authorName} <${authorEmail}>`);
+            console.log(`🧑🏼‍💻 ${authorLink} // ${authorName} <${authorEmail}>`);
 
             if (authorData.company)
                 console.log(`   🏢 ${authorData.company}`);
@@ -199,8 +199,10 @@ async function listCommits() {
             if (authorData.blog)
                 console.log(`   📝 ${authorData.blog}`);
 
-            if (authorData.twitter_username)
-                console.log(`   🐦 ${authorData.twitter_username}`);
+            if (authorData.twitter_username) {
+                let twitterLink = terminalLink('@' + authorData.twitter_username, `https://twitter.com/${authorData.twitter_username}`);
+                console.log(`   🐦 ${twitterLink}`);
+            }
 
             console.log();
         }
