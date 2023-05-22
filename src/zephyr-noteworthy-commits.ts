@@ -15,9 +15,6 @@ interface WPPost {
 
 async function getMostRecentPostDate(tag: number): Promise<string | null> {
     const apiUrl = `${BLOG_URL}/wp-json/wp/v2/posts?tags=${tag}&per_page=1&_fields=date_gmt`;
-
-    console.log(apiUrl)
-
     try {
         const response = await fetch(apiUrl);
         const data: WPPost[] = await response.json() as WPPost[];
@@ -57,7 +54,7 @@ const SHOW_COMMIT_DETAILS = true;
 
 async function listCommits() {
     const sinceDate = await getMostRecentPostDate(TAG);
-    
+
     // Use github search API to get the list of all pull requests merged since the last blog post
     // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests
     const query = `repo:${owner}/${repo} is:pr is:merged merged:>${sinceDate}`;
@@ -75,6 +72,8 @@ async function listCommits() {
     });
 
     let firstTimeContributors = [];
+    // map GitHub user to name and email
+    let githubUserToIdentityFromCommitInfo: Record<string, { name: string, email: string }> = {};
 
     // List pull request numbers, titles and links
     for (const pr of searchResult) {
@@ -119,7 +118,8 @@ async function listCommits() {
                 ((deleted - added) > 50) ||
                 (added >= 30 && deleted < 5) ||
                 added > 150 ||
-                deleted > 150) {
+                deleted > 150 ||
+                isFirstPR) {
 
                 if (added - deleted > 300) {
                     specialFlag = '🚀';
@@ -147,6 +147,13 @@ async function listCommits() {
                     pull_number: pr.number,
                 });
                 for (const commit of commits.data) {
+                    if (author) {
+                        let name = commit.commit.author?.name;
+                        let email = commit.commit.author?.email;
+                        if (name && email) {
+                            githubUserToIdentityFromCommitInfo[author] = { name: name, email: email };
+                        }
+                    }
                     const commitLink = terminalLink(
                         commit.sha.substring(0, 7),
                         `https://github.com/${owner}/${repo}/commit/${commit.sha}`
@@ -177,14 +184,11 @@ async function listCommits() {
             });
 
             let authorLink = terminalLink('@' + author?.login || '', author?.html_url || '');
-            if (authorData.name) {
-                console.log(
-                    `🧑🏼‍💻 ${authorLink} // 🪪  ${authorData.name}`,
-                    (author.email ? `<${author.email}>` : '')
-                );
-            }
-            else
-                console.log(`🧑🏼‍💻 ${authorLink}`);
+            // get author name and email from GitHub, and revert to commit info if not set in Github
+            let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
+            let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
+
+            console.log(`🧑🏼‍💻 ${authorLink} // 🪪  ${authorName} <${authorEmail}>`);
 
             if (authorData.company)
                 console.log(`   🏢 ${authorData.company}`);

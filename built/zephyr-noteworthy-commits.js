@@ -23,7 +23,6 @@ const TAG = 529; //'zephyr-weekly-update';
 function getMostRecentPostDate(tag) {
     return __awaiter(this, void 0, void 0, function* () {
         const apiUrl = `${BLOG_URL}/wp-json/wp/v2/posts?tags=${tag}&per_page=1&_fields=date_gmt`;
-        console.log(apiUrl);
         try {
             const response = yield (0, node_fetch_1.default)(apiUrl);
             const data = yield response.json();
@@ -57,7 +56,7 @@ const owner = 'zephyrproject-rtos';
 const repo = 'zephyr';
 const SHOW_COMMIT_DETAILS = true;
 function listCommits() {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
         const sinceDate = yield getMostRecentPostDate(TAG);
         // Use github search API to get the list of all pull requests merged since the last blog post
@@ -73,6 +72,8 @@ function listCommits() {
             return a.title.localeCompare(b.title);
         });
         let firstTimeContributors = [];
+        // map GitHub user to name and email
+        let githubUserToIdentityFromCommitInfo = {};
         // List pull request numbers, titles and links
         for (const pr of searchResult) {
             // check if this PR is author's first merged PR using GH Search API
@@ -109,7 +110,8 @@ function listCommits() {
                     ((deleted - added) > 50) ||
                     (added >= 30 && deleted < 5) ||
                     added > 150 ||
-                    deleted > 150) {
+                    deleted > 150 ||
+                    isFirstPR) {
                     if (added - deleted > 300) {
                         specialFlag = '🚀';
                     }
@@ -133,14 +135,21 @@ function listCommits() {
                         pull_number: pr.number,
                     });
                     for (const commit of commits.data) {
+                        if (author) {
+                            let name = (_e = commit.commit.author) === null || _e === void 0 ? void 0 : _e.name;
+                            let email = (_f = commit.commit.author) === null || _f === void 0 ? void 0 : _f.email;
+                            if (name && email) {
+                                githubUserToIdentityFromCommitInfo[author] = { name: name, email: email };
+                            }
+                        }
                         const commitLink = (0, terminal_link_1.default)(commit.sha.substring(0, 7), `https://github.com/${owner}/${repo}/commit/${commit.sha}`);
                         console.log(`  - ${ansi_colors_1.default.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                     }
                 }
                 else {
                     console.log(ansi_colors_1.default.grey(`${specialFlag} ${prLink} ${pr.title}`), ansi_colors_1.default.green.dim(`+${added}`), ansi_colors_1.default.red.dim(`-${deleted}`), isFirstPR ?
-                        ansi_colors_1.default.bold(`(@${(_e = pr.user) === null || _e === void 0 ? void 0 : _e.login} 🆕)`) :
-                        ansi_colors_1.default.grey(`(@${(_f = pr.user) === null || _f === void 0 ? void 0 : _f.login})`));
+                        ansi_colors_1.default.bold(`(@${(_g = pr.user) === null || _g === void 0 ? void 0 : _g.login} 🆕)`) :
+                        ansi_colors_1.default.grey(`(@${(_h = pr.user) === null || _h === void 0 ? void 0 : _h.login})`));
                 }
             }
         }
@@ -155,11 +164,10 @@ function listCommits() {
                     username: author.login,
                 });
                 let authorLink = (0, terminal_link_1.default)('@' + (author === null || author === void 0 ? void 0 : author.login) || '', (author === null || author === void 0 ? void 0 : author.html_url) || '');
-                if (authorData.name) {
-                    console.log(`🧑🏼‍💻 ${authorLink} // 🪪  ${authorData.name}`, (author.email ? `<${author.email}>` : ''));
-                }
-                else
-                    console.log(`🧑🏼‍💻 ${authorLink}`);
+                // get author name and email from GitHub, and revert to commit info if not set in Github
+                let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
+                let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
+                console.log(`🧑🏼‍💻 ${authorLink} // 🪪  ${authorName} <${authorEmail}>`);
                 if (authorData.company)
                     console.log(`   🏢 ${authorData.company}`);
                 if (authorData.location)
