@@ -114,8 +114,8 @@ async function listCommits() {
                 `https://github.com/${owner}/${repo}/pull/${pr.number}`
             );
 
-            if (((added - deleted) > 100) ||
-                ((deleted - added) > 50) ||
+            if (((added - deleted) > 40) ||
+                ((deleted - added) > 80) ||
                 (added >= 30 && deleted < 5) ||
                 added > 150 ||
                 deleted > 150 ||
@@ -129,15 +129,17 @@ async function listCommits() {
 
                 let highlight = (isFirstPR) ? c.bold : c.reset;
 
-                console.log([
-                    c.green(`${specialFlag} ${prLink} ${pr.title}`),
-                    c.green(`+${added}`),
-                    c.red(`-${deleted}`),
-                    //pr.labels.map((label) => c.bgHex(label.color || '#000').black(label.name)).join(' ')
-                    isFirstPR ?
-                        c.bold(`(@${pr.user?.login} 🆕)`) :
-                        `(@${pr.user?.login})`
-                ].map(highlight).join(' ')
+                console.log(
+                    highlight([
+                        c.green(`${specialFlag} ${prLink} ${pr.title}`),
+                        c.green(`+${added}`),
+                        c.red(`-${deleted}`),
+                        //pr.labels.map((label) => c.bgHex(label.color || '#000').black(label.name)).join(' ')
+                        isFirstPR ?
+                            c.bold(`(@${pr.user?.login} 🆕)`) :
+                            `(@${pr.user?.login})`
+                    ].map(highlight).join(' ')
+                    )
                 );
 
                 // list all commits in the pull request

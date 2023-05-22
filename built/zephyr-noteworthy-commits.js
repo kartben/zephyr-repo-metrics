@@ -106,8 +106,8 @@ function listCommits() {
                     specialFlag = '🐛';
                 }
                 const prLink = (0, terminal_link_1.default)(`#${pr.number}`, `https://github.com/${owner}/${repo}/pull/${pr.number}`);
-                if (((added - deleted) > 100) ||
-                    ((deleted - added) > 50) ||
+                if (((added - deleted) > 40) ||
+                    ((deleted - added) > 80) ||
                     (added >= 30 && deleted < 5) ||
                     added > 150 ||
                     deleted > 150 ||
@@ -119,7 +119,7 @@ function listCommits() {
                         specialFlag = '⚙️';
                     }
                     let highlight = (isFirstPR) ? ansi_colors_1.default.bold : ansi_colors_1.default.reset;
-                    console.log([
+                    console.log(highlight([
                         ansi_colors_1.default.green(`${specialFlag} ${prLink} ${pr.title}`),
                         ansi_colors_1.default.green(`+${added}`),
                         ansi_colors_1.default.red(`-${deleted}`),
@@ -127,7 +127,7 @@ function listCommits() {
                         isFirstPR ?
                             ansi_colors_1.default.bold(`(@${(_c = pr.user) === null || _c === void 0 ? void 0 : _c.login} 🆕)`) :
                             `(@${(_d = pr.user) === null || _d === void 0 ? void 0 : _d.login})`
-                    ].map(highlight).join(' '));
+                    ].map(highlight).join(' ')));
                     // list all commits in the pull request
                     const commits = yield octokit.rest.pulls.listCommits({
                         owner,
