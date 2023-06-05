@@ -156,29 +156,35 @@ function listCommits() {
         ;
         console.log();
         console.log();
-        console.log(`The following ${firstTimeContributors.length} contributors had their first pull requet(s) merged on the period:\n`);
-        for (const author of firstTimeContributors) {
-            if (author) {
-                // get more info about the author
-                const { data: authorData } = yield octokit.rest.users.getByUsername({
-                    username: author.login,
-                });
-                let authorLink = (0, terminal_link_1.default)('@' + (author === null || author === void 0 ? void 0 : author.login) || '', (author === null || author === void 0 ? void 0 : author.html_url) || '');
-                // get author name and email from GitHub, and revert to commit info if not set in Github
-                let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
-                let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
-                console.log(`🧑🏼‍💻 ${authorLink} // ${authorName} <${authorEmail}>`);
-                if (authorData.company)
-                    console.log(`   🏢 ${authorData.company}`);
-                if (authorData.location)
-                    console.log(`   🌍 ${authorData.location}`);
-                if (authorData.blog)
-                    console.log(`   📝 ${authorData.blog}`);
-                if (authorData.twitter_username) {
-                    let twitterLink = (0, terminal_link_1.default)('@' + authorData.twitter_username, `https://twitter.com/${authorData.twitter_username}`);
-                    console.log(`   🐦 ${twitterLink}`);
+        if (firstTimeContributors.length === 0) {
+            // no first time contributors, add an emoji to make it more fun
+            console.log(`No first time contributors on the period. 🤷‍♂️`);
+        }
+        else {
+            console.log(`The following ${firstTimeContributors.length} contributors had their first pull request(s) merged on the period:\n`);
+            for (const author of firstTimeContributors) {
+                if (author) {
+                    // get more info about the author
+                    const { data: authorData } = yield octokit.rest.users.getByUsername({
+                        username: author.login,
+                    });
+                    let authorLink = (0, terminal_link_1.default)('@' + (author === null || author === void 0 ? void 0 : author.login) || '', (author === null || author === void 0 ? void 0 : author.html_url) || '');
+                    // get author name and email from GitHub, and revert to commit info if not set in Github
+                    let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
+                    let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
+                    console.log(`🧑🏼‍💻 ${authorLink} // ${authorName} <${authorEmail}>`);
+                    if (authorData.company)
+                        console.log(`   🏢 ${authorData.company}`);
+                    if (authorData.location)
+                        console.log(`   🌍 ${authorData.location}`);
+                    if (authorData.blog)
+                        console.log(`   📝 ${authorData.blog}`);
+                    if (authorData.twitter_username) {
+                        let twitterLink = (0, terminal_link_1.default)('@' + authorData.twitter_username, `https://twitter.com/${authorData.twitter_username}`);
+                        console.log(`   🐦 ${twitterLink}`);
+                    }
+                    console.log();
                 }
-                console.log();
             }
         }
     });
