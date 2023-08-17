@@ -52,7 +52,7 @@ const repo = 'zephyr';
 
 const SHOW_COMMIT_DETAILS = true;
 
-async function listCommits() {
+async function listPRs(showCommitDetails = true) {
     const sinceDate = await getMostRecentPostDate(TAG);
 
     // Use github search API to get the list of all pull requests merged since the last blog post
@@ -142,25 +142,27 @@ async function listCommits() {
                     )
                 );
 
-                // list all commits in the pull request
-                const commits = await octokit.rest.pulls.listCommits({
-                    owner,
-                    repo,
-                    pull_number: pr.number,
-                });
-                for (const commit of commits.data) {
-                    if (author) {
-                        let name = commit.commit.author?.name;
-                        let email = commit.commit.author?.email;
-                        if (name && email) {
-                            githubUserToIdentityFromCommitInfo[author] = { name: name, email: email };
+                if (showCommitDetails) {
+                    // list all commits in the pull request
+                    const commits = await octokit.rest.pulls.listCommits({
+                        owner,
+                        repo,
+                        pull_number: pr.number,
+                    });
+                    for (const commit of commits.data) {
+                        if (author) {
+                            let name = commit.commit.author?.name;
+                            let email = commit.commit.author?.email;
+                            if (name && email) {
+                                githubUserToIdentityFromCommitInfo[author] = { name: name, email: email };
+                            }
                         }
+                        const commitLink = terminalLink(
+                            commit.sha.substring(0, 7),
+                            `https://github.com/${owner}/${repo}/commit/${commit.sha}`
+                        );
+                        console.log(`  - ${c.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                     }
-                    const commitLink = terminalLink(
-                        commit.sha.substring(0, 7),
-                        `https://github.com/${owner}/${repo}/commit/${commit.sha}`
-                    );
-                    console.log(`  - ${c.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                 }
             } else {
                 console.log(c.grey(`${specialFlag} ${prLink} ${pr.title}`),
@@ -188,33 +190,41 @@ async function listCommits() {
                 const { data: authorData } = await octokit.rest.users.getByUsername({
                     username: author.login,
                 });
-    
+
                 let authorLink = terminalLink('@' + author?.login || '', author?.html_url || '');
                 // get author name and email from GitHub, and revert to commit info if not set in Github
                 let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
                 let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
-    
-                console.log(`🧑🏼‍💻 ${authorLink} // ${authorName} <${authorEmail}>`);
-    
+
+                console.log(`🧑🏼‍💻 ${authorLink} // ${authorName} ${authorEmail ? `<${authorEmail}>` : ''}`);
+
                 if (authorData.company)
                     console.log(`   🏢 ${authorData.company}`);
-    
+
                 if (authorData.location)
                     console.log(`   🌍 ${authorData.location}`);
-    
+
                 if (authorData.blog)
                     console.log(`   📝 ${authorData.blog}`);
-    
+
                 if (authorData.twitter_username) {
                     let twitterLink = terminalLink('@' + authorData.twitter_username, `https://twitter.com/${authorData.twitter_username}`);
                     console.log(`   🐦 ${twitterLink}`);
                 }
-    
+
                 console.log();
             }
         }
+
+        // Log first-time contributors as copy-pasteable HTML
+        // Example: <p>A big thank you to the <strong>6 individuals</strong> who had their first pull request accepted this week, 💙 🙌: <a href="https://github.com/feraralashkar" target="_blank" rel="noreferrer noopener">Ferar</a>, <a href="https://github.com/markxoe" target="_blank" rel="noreferrer noopener">Mark</a>, <a href="https://github.com/MBradbury" target="_blank" rel="noreferrer noopener">Matthew</a>, <a href="https://github.com/nono313" target="_blank" rel="noreferrer noopener">Nathan</a>, <a href="https://github.com/nickstoughton" target="_blank" rel="noreferrer noopener">Nick</a>, and <a href="https://github.com/plbossart" target="_blank" rel="noreferrer noopener">Pierre-Louis</a>.</p>
+        console.log(`<p>A big thank you to the <strong>${firstTimeContributors.length} individuals</strong> who had their first pull request accepted this week, 💙 🙌:`,
+                    `${firstTimeContributors.map((author) => { return `<a href="${author?.html_url}" target="_blank" rel="noreferrer noopener">@${author?.login}</a>` }).join(', ')}.`
+                    + `</p>`);
+
+
     }
 
 }
 
-listCommits();
+listPRs(false);

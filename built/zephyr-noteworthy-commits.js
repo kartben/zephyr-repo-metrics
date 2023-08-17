@@ -55,7 +55,7 @@ const octokit = new MyOctokit({
 const owner = 'zephyrproject-rtos';
 const repo = 'zephyr';
 const SHOW_COMMIT_DETAILS = true;
-function listCommits() {
+function listPRs(showCommitDetails = true) {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
         const sinceDate = yield getMostRecentPostDate(TAG);
@@ -128,22 +128,24 @@ function listCommits() {
                             ansi_colors_1.default.bold(`(@${(_c = pr.user) === null || _c === void 0 ? void 0 : _c.login} 🆕)`) :
                             `(@${(_d = pr.user) === null || _d === void 0 ? void 0 : _d.login})`
                     ].map(highlight).join(' ')));
-                    // list all commits in the pull request
-                    const commits = yield octokit.rest.pulls.listCommits({
-                        owner,
-                        repo,
-                        pull_number: pr.number,
-                    });
-                    for (const commit of commits.data) {
-                        if (author) {
-                            let name = (_e = commit.commit.author) === null || _e === void 0 ? void 0 : _e.name;
-                            let email = (_f = commit.commit.author) === null || _f === void 0 ? void 0 : _f.email;
-                            if (name && email) {
-                                githubUserToIdentityFromCommitInfo[author] = { name: name, email: email };
+                    if (showCommitDetails) {
+                        // list all commits in the pull request
+                        const commits = yield octokit.rest.pulls.listCommits({
+                            owner,
+                            repo,
+                            pull_number: pr.number,
+                        });
+                        for (const commit of commits.data) {
+                            if (author) {
+                                let name = (_e = commit.commit.author) === null || _e === void 0 ? void 0 : _e.name;
+                                let email = (_f = commit.commit.author) === null || _f === void 0 ? void 0 : _f.email;
+                                if (name && email) {
+                                    githubUserToIdentityFromCommitInfo[author] = { name: name, email: email };
+                                }
                             }
+                            const commitLink = (0, terminal_link_1.default)(commit.sha.substring(0, 7), `https://github.com/${owner}/${repo}/commit/${commit.sha}`);
+                            console.log(`  - ${ansi_colors_1.default.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                         }
-                        const commitLink = (0, terminal_link_1.default)(commit.sha.substring(0, 7), `https://github.com/${owner}/${repo}/commit/${commit.sha}`);
-                        console.log(`  - ${ansi_colors_1.default.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                     }
                 }
                 else {
@@ -172,7 +174,7 @@ function listCommits() {
                     // get author name and email from GitHub, and revert to commit info if not set in Github
                     let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
                     let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
-                    console.log(`🧑🏼‍💻 ${authorLink} // ${authorName} <${authorEmail}>`);
+                    console.log(`🧑🏼‍💻 ${authorLink} // ${authorName} ${authorEmail ? `<${authorEmail}>` : ''}`);
                     if (authorData.company)
                         console.log(`   🏢 ${authorData.company}`);
                     if (authorData.location)
@@ -186,8 +188,12 @@ function listCommits() {
                     console.log();
                 }
             }
+            // Log first-time contributors as copy-pasteable HTML
+            // Example: <p>A big thank you to the <strong>6 individuals</strong> who had their first pull request accepted this week, 💙 🙌: <a href="https://github.com/feraralashkar" target="_blank" rel="noreferrer noopener">Ferar</a>, <a href="https://github.com/markxoe" target="_blank" rel="noreferrer noopener">Mark</a>, <a href="https://github.com/MBradbury" target="_blank" rel="noreferrer noopener">Matthew</a>, <a href="https://github.com/nono313" target="_blank" rel="noreferrer noopener">Nathan</a>, <a href="https://github.com/nickstoughton" target="_blank" rel="noreferrer noopener">Nick</a>, and <a href="https://github.com/plbossart" target="_blank" rel="noreferrer noopener">Pierre-Louis</a>.</p>
+            console.log(`<p>A big thank you to the <strong>${firstTimeContributors.length} individuals</strong> who had their first pull request accepted this week, 💙 🙌:`, `${firstTimeContributors.map((author) => { return `<a href="${author === null || author === void 0 ? void 0 : author.html_url}" target="_blank" rel="noreferrer noopener">@${author === null || author === void 0 ? void 0 : author.login}</a>`; }).join(', ')}.`
+                + `</p>`);
         }
     });
 }
-listCommits();
+listPRs(false);
 //# sourceMappingURL=zephyr-noteworthy-commits.js.map
