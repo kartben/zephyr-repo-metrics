@@ -111,7 +111,8 @@ async function listPRs(showCommitDetails = true) {
 
             const prLink = terminalLink(
                 `#${pr.number}`,
-                `https://github.com/${owner}/${repo}/pull/${pr.number}`
+                `https://github.com/${owner}/${repo}/pull/${pr.number}`,
+                { fallback: (text, url) => text }
             );
 
             if (((added - deleted) > 40) ||
@@ -159,7 +160,8 @@ async function listPRs(showCommitDetails = true) {
                         }
                         const commitLink = terminalLink(
                             commit.sha.substring(0, 7),
-                            `https://github.com/${owner}/${repo}/commit/${commit.sha}`
+                            `https://github.com/${owner}/${repo}/commit/${commit.sha}`,
+                            { fallback: (text, url) => text }
                         );
                         console.log(`  - ${c.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                     }
@@ -191,7 +193,9 @@ async function listPRs(showCommitDetails = true) {
                     username: author.login,
                 });
 
-                let authorLink = terminalLink('@' + author?.login || '', author?.html_url || '');
+                let authorLink = terminalLink('@' + author?.login || '', author?.html_url || '',
+                    { fallback: (text, url) => text }
+                );
                 // get author name and email from GitHub, and revert to commit info if not set in Github
                 let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
                 let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
@@ -208,7 +212,9 @@ async function listPRs(showCommitDetails = true) {
                     console.log(`   📝 ${authorData.blog}`);
 
                 if (authorData.twitter_username) {
-                    let twitterLink = terminalLink('@' + authorData.twitter_username, `https://twitter.com/${authorData.twitter_username}`);
+                    let twitterLink = terminalLink('@' + authorData.twitter_username, `https://twitter.com/${authorData.twitter_username}`,
+                        { fallback: (text, url) => text }
+                    );
                     console.log(`   🐦 ${twitterLink}`);
                 }
 
@@ -219,8 +225,8 @@ async function listPRs(showCommitDetails = true) {
         // Log first-time contributors as copy-pasteable HTML
         // Example: <p>A big thank you to the <strong>6 individuals</strong> who had their first pull request accepted this week, 💙 🙌: <a href="https://github.com/feraralashkar" target="_blank" rel="noreferrer noopener">Ferar</a>, <a href="https://github.com/markxoe" target="_blank" rel="noreferrer noopener">Mark</a>, <a href="https://github.com/MBradbury" target="_blank" rel="noreferrer noopener">Matthew</a>, <a href="https://github.com/nono313" target="_blank" rel="noreferrer noopener">Nathan</a>, <a href="https://github.com/nickstoughton" target="_blank" rel="noreferrer noopener">Nick</a>, and <a href="https://github.com/plbossart" target="_blank" rel="noreferrer noopener">Pierre-Louis</a>.</p>
         console.log(`<p>A big thank you to the <strong>${firstTimeContributors.length} individuals</strong> who had their first pull request accepted this week, 💙 🙌:`,
-                    `${firstTimeContributors.map((author) => { return `<a href="${author?.html_url}" target="_blank" rel="noreferrer noopener">@${author?.login}</a>` }).join(', ')}.`
-                    + `</p>`);
+            `${firstTimeContributors.map((author) => { return `<a href="${author?.html_url}" target="_blank" rel="noreferrer noopener">@${author?.login}</a>` }).join(', ')}.`
+            + `</p>`);
 
 
     }
