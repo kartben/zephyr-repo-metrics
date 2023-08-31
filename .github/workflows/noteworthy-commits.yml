@@ -1,32 +1,40 @@
 name: Run Zephyr Noteworthy Commits
 
 on:
-  workflow_dispatch:
-    inputs:
-      param1:
-        description: '[since] or [commit1]'
-        required: true
-      param2:
-        description: '[commit 2]'
-        required: false
+  schedule:
+    # Run every 2 hours or on demand
+    - cron: '0 */2 * * *'
+  workflow_dispatch: {}
 
 jobs:
   run_script:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Clone Zephyr repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: zephyrproject-rtos/zephyr
         path: ./repos/Zephyr
 
-    - name: Run zephyr-noteworthy-commits.sh script
-      env:
-        PARAM1: ${{ github.event.inputs.param1 }}
-        PARAM2: ${{ github.event.inputs.param2 }}
-      run: |
-        ./zephyr-noteworthy-commits.sh "$PARAM1" "$PARAM2"
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Run zephyr-noteworthy-commits npm script and capture output
+      run: npm run zephyr-noteworthy-commits | tee output.ansi
+
+    - name: Upload output as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: zephyr-noteworthy-commits-output
+        path: output.ansi

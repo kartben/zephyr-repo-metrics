@@ -227,4 +227,4 @@ async function listPRs(showCommitDetails = true) {
 
 }
 
-listPRs(false);
+listPRs(true);
