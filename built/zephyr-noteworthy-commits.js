@@ -82,10 +82,15 @@ function listPRs(showCommitDetails = true) {
             let isFirstPR = false;
             if (author) {
                 const query = `repo:${owner}/${repo} is:pr is:merged author:${author} closed:<=${pr.closed_at}`;
-                const { status: searchStatus, data: searchResults } = yield octokit.rest.search.issuesAndPullRequests({ q: query });
-                if (searchResults.total_count === 1) {
-                    firstTimeContributors.push(pr.user);
-                    isFirstPR = true;
+                try {
+                    const { status: searchStatus, data: searchResults } = yield octokit.rest.search.issuesAndPullRequests({ q: query });
+                    if (searchResults.total_count === 1) {
+                        firstTimeContributors.push(pr.user);
+                        isFirstPR = true;
+                    }
+                }
+                catch (error) {
+                    // ignore -- user may have deleted their account or have privacy settings preventing search
                 }
             }
             // Fetch the diff corresponding to the pull request
@@ -105,7 +110,7 @@ function listPRs(showCommitDetails = true) {
                 if (['fix', 'bug', 'issue'].some((keyword) => pr.title.toLowerCase().includes(keyword))) {
                     specialFlag = '🐛';
                 }
-                const prLink = (0, terminal_link_1.default)(`#${pr.number}`, `https://github.com/${owner}/${repo}/pull/${pr.number}`);
+                const prLink = (0, terminal_link_1.default)(`#${pr.number}`, `https://github.com/${owner}/${repo}/pull/${pr.number}`, { fallback: (text, url) => text });
                 if (((added - deleted) > 40) ||
                     ((deleted - added) > 80) ||
                     (added >= 30 && deleted < 5) ||
@@ -143,7 +148,7 @@ function listPRs(showCommitDetails = true) {
                                     githubUserToIdentityFromCommitInfo[author] = { name: name, email: email };
                                 }
                             }
-                            const commitLink = (0, terminal_link_1.default)(commit.sha.substring(0, 7), `https://github.com/${owner}/${repo}/commit/${commit.sha}`);
+                            const commitLink = (0, terminal_link_1.default)(commit.sha.substring(0, 7), `https://github.com/${owner}/${repo}/commit/${commit.sha}`, { fallback: (text, url) => text });
                             console.log(`  - ${ansi_colors_1.default.blueBright(commitLink)} ${commit.commit.message.split('\n')[0]}`);
                         }
                     }
@@ -170,7 +175,7 @@ function listPRs(showCommitDetails = true) {
                     const { data: authorData } = yield octokit.rest.users.getByUsername({
                         username: author.login,
                     });
-                    let authorLink = (0, terminal_link_1.default)('@' + (author === null || author === void 0 ? void 0 : author.login) || '', (author === null || author === void 0 ? void 0 : author.html_url) || '');
+                    let authorLink = (0, terminal_link_1.default)('@' + (author === null || author === void 0 ? void 0 : author.login) || '', (author === null || author === void 0 ? void 0 : author.html_url) || '', { fallback: (text, url) => text });
                     // get author name and email from GitHub, and revert to commit info if not set in Github
                     let authorName = authorData.name || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].name : '');
                     let authorEmail = authorData.email || (githubUserToIdentityFromCommitInfo[author.login] ? githubUserToIdentityFromCommitInfo[author.login].email : '');
@@ -182,7 +187,7 @@ function listPRs(showCommitDetails = true) {
                     if (authorData.blog)
                         console.log(`   📝 ${authorData.blog}`);
                     if (authorData.twitter_username) {
-                        let twitterLink = (0, terminal_link_1.default)('@' + authorData.twitter_username, `https://twitter.com/${authorData.twitter_username}`);
+                        let twitterLink = (0, terminal_link_1.default)('@' + authorData.twitter_username, `https://twitter.com/${authorData.twitter_username}`, { fallback: (text, url) => text });
                         console.log(`   🐦 ${twitterLink}`);
                     }
                     console.log();
@@ -195,5 +200,5 @@ function listPRs(showCommitDetails = true) {
         }
     });
 }
-listPRs(false);
+listPRs(true);
 //# sourceMappingURL=zephyr-noteworthy-commits.js.map

@@ -83,10 +83,15 @@ async function listPRs(showCommitDetails = true) {
         let isFirstPR = false;
         if (author) {
             const query = `repo:${owner}/${repo} is:pr is:merged author:${author} closed:<=${pr.closed_at}`;
-            const { status: searchStatus, data: searchResults } = await octokit.rest.search.issuesAndPullRequests({ q: query });
-            if (searchResults.total_count === 1) {
-                firstTimeContributors.push(pr.user);
-                isFirstPR = true;
+            try {
+                const { status: searchStatus, data: searchResults } = await octokit.rest.search.issuesAndPullRequests({ q: query });
+                if (searchResults.total_count === 1) {
+                    firstTimeContributors.push(pr.user);
+                    isFirstPR = true;
+                }
+            }
+            catch (error) {
+                // ignore -- user may have deleted their account or have privacy settings preventing search
             }
         }
 
