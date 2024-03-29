@@ -125,14 +125,14 @@ function listPRs(showCommitDetails = true) {
                     }
                     let highlight = (isFirstPR) ? ansi_colors_1.default.bold : ansi_colors_1.default.reset;
                     console.log(highlight([
-                        ansi_colors_1.default.green(`${specialFlag} ${prLink} ${pr.title}`),
+                        ansi_colors_1.default.green(`${specialFlag} ${pr.title}`),
                         ansi_colors_1.default.green(`+${added}`),
                         ansi_colors_1.default.red(`-${deleted}`),
                         //pr.labels.map((label) => c.bgHex(label.color || '#000').black(label.name)).join(' ')
                         isFirstPR ?
-                            ansi_colors_1.default.bold(`(@${(_c = pr.user) === null || _c === void 0 ? void 0 : _c.login} 🆕)`) :
-                            `(@${(_d = pr.user) === null || _d === void 0 ? void 0 : _d.login})`
-                    ].map(highlight).join(' ')));
+                            ansi_colors_1.default.bold(`[@${(_c = pr.user) === null || _c === void 0 ? void 0 : _c.login} 🆕]`) :
+                            `[@${(_d = pr.user) === null || _d === void 0 ? void 0 : _d.login}]`,
+                    ].map(highlight).join(' ')), `(PR ${prLink})`);
                     if (showCommitDetails) {
                         // list all commits in the pull request
                         const commits = yield octokit.rest.pulls.listCommits({
@@ -154,9 +154,9 @@ function listPRs(showCommitDetails = true) {
                     }
                 }
                 else {
-                    console.log(ansi_colors_1.default.grey(`${specialFlag} ${prLink} ${pr.title}`), ansi_colors_1.default.green.dim(`+${added}`), ansi_colors_1.default.red.dim(`-${deleted}`), isFirstPR ?
-                        ansi_colors_1.default.bold(`(@${(_g = pr.user) === null || _g === void 0 ? void 0 : _g.login} 🆕)`) :
-                        ansi_colors_1.default.grey(`(@${(_h = pr.user) === null || _h === void 0 ? void 0 : _h.login})`));
+                    console.log(ansi_colors_1.default.grey(`${specialFlag} ${pr.title}`), ansi_colors_1.default.green.dim(`+${added}`), ansi_colors_1.default.red.dim(`-${deleted}`), isFirstPR ?
+                        ansi_colors_1.default.bold(`[@${(_g = pr.user) === null || _g === void 0 ? void 0 : _g.login} 🆕]`) :
+                        ansi_colors_1.default.grey(`[@${(_h = pr.user) === null || _h === void 0 ? void 0 : _h.login}]`), ansi_colors_1.default.grey(`(PR ${prLink})`));
                 }
             }
         }

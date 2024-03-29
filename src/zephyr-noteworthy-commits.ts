@@ -137,15 +137,17 @@ async function listPRs(showCommitDetails = true) {
 
                 console.log(
                     highlight([
-                        c.green(`${specialFlag} ${prLink} ${pr.title}`),
+                        c.green(`${specialFlag} ${pr.title}`),
                         c.green(`+${added}`),
                         c.red(`-${deleted}`),
                         //pr.labels.map((label) => c.bgHex(label.color || '#000').black(label.name)).join(' ')
                         isFirstPR ?
-                            c.bold(`(@${pr.user?.login} 🆕)`) :
-                            `(@${pr.user?.login})`
-                    ].map(highlight).join(' ')
-                    )
+                            c.bold(`[@${pr.user?.login} 🆕]`) :
+                            `[@${pr.user?.login}]`,
+
+                    ].map(highlight).join(' '),
+                    ),
+                    `(PR ${prLink})`
                 );
 
                 if (showCommitDetails) {
@@ -172,12 +174,13 @@ async function listPRs(showCommitDetails = true) {
                     }
                 }
             } else {
-                console.log(c.grey(`${specialFlag} ${prLink} ${pr.title}`),
+                console.log(c.grey(`${specialFlag} ${pr.title}`),
                     c.green.dim(`+${added}`),
                     c.red.dim(`-${deleted}`),
                     isFirstPR ?
-                        c.bold(`(@${pr.user?.login} 🆕)`) :
-                        c.grey(`(@${pr.user?.login})`)
+                        c.bold(`[@${pr.user?.login} 🆕]`) :
+                        c.grey(`[@${pr.user?.login}]`),
+                    c.grey(`(PR ${prLink})`)
                 );
             }
         }
