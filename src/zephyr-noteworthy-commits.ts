@@ -5,6 +5,7 @@ import c from 'ansi-colors';
 import terminalLink from 'terminal-link';
 import fetch from 'node-fetch';
 import parseDiff from 'parse-diff';
+import moment from 'moment';
 
 const BLOG_URL = 'https://blog.benjamin-cabe.com';
 const TAG = 529; //'zephyr-weekly-update';
@@ -53,7 +54,9 @@ const repo = 'zephyr';
 const SHOW_COMMIT_DETAILS = true;
 
 async function listPRs(showCommitDetails = true) {
-    const sinceDate = await getMostRecentPostDate(TAG);
+    var latestBlogPostDate = await getMostRecentPostDate(TAG);
+    // min date should be july 26 2024
+    const sinceDate = moment.max(moment(latestBlogPostDate), moment('2024-07-26')).toISOString();
 
     // Use github search API to get the list of all pull requests merged since the last blog post
     // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests

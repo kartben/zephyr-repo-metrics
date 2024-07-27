@@ -18,6 +18,7 @@ const ansi_colors_1 = __importDefault(require("ansi-colors"));
 const terminal_link_1 = __importDefault(require("terminal-link"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const parse_diff_1 = __importDefault(require("parse-diff"));
+const moment_1 = __importDefault(require("moment"));
 const BLOG_URL = 'https://blog.benjamin-cabe.com';
 const TAG = 529; //'zephyr-weekly-update';
 function getMostRecentPostDate(tag) {
@@ -58,7 +59,9 @@ const SHOW_COMMIT_DETAILS = true;
 function listPRs(showCommitDetails = true) {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
-        const sinceDate = yield getMostRecentPostDate(TAG);
+        var latestBlogPostDate = yield getMostRecentPostDate(TAG);
+        // min date should be july 26 2024
+        const sinceDate = moment_1.default.max((0, moment_1.default)(latestBlogPostDate), (0, moment_1.default)('2024-07-26')).toISOString();
         // Use github search API to get the list of all pull requests merged since the last blog post
         // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests
         const query = `repo:${owner}/${repo} is:pr is:merged merged:>${sinceDate}`;
