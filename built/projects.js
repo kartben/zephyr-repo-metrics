@@ -97,8 +97,8 @@ let projects = [
         ]
     },
     {
-        name: 'Azure RTOS ThreadX',
-        url: 'https://github.com/azure-rtos/threadx',
+        name: 'Eclipse ThreadX',
+        url: 'https://github.com/eclipse-threadx/threadx',
         branch: 'master',
         snippets: [
             { name: 'drivers', fn: snippets.NULL_FUNCTION },
