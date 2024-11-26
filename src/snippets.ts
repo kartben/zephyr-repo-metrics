@@ -42,8 +42,10 @@ async function countZephyrBoards(repo: SimpleGit, context: IAnalyticsSnippetCont
     let workingDir = await repo.revparse('--show-toplevel');
 
     if (context.moment.isBefore('2024-03-01T00:00:00.000Z')) {
-        return exec(`find '${workingDir}/boards' -type f -name "*.yaml" -exec grep -h "identifier:" {} \\; | sed s/_ns$// | sort -u | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
+        // count the number of Kconfig.board files in the boards folder
+        return exec(`find '${workingDir}/boards' -type f -name "Kconfig.board" | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
     } else {
+        // count the number of unique board names in the board.yml files
         const command = `
         find '${workingDir}/boards' -type f -name 'board.yml' -print0 |
         xargs -0 yq eval-all '.board.name, .boards[].name' -N |

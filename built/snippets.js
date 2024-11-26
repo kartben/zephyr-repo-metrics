@@ -58,9 +58,11 @@ function countZephyrBoards(repo, context) {
     return __awaiter(this, void 0, void 0, function* () {
         let workingDir = yield repo.revparse('--show-toplevel');
         if (context.moment.isBefore('2024-03-01T00:00:00.000Z')) {
-            return (0, child_process_promise_1.exec)(`find '${workingDir}/boards' -type f -name "*.yaml" -exec grep -h "identifier:" {} \\; | sed s/_ns$// | sort -u | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
+            // count the number of Kconfig.board files in the boards folder
+            return (0, child_process_promise_1.exec)(`find '${workingDir}/boards' -type f -name "Kconfig.board" | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
         }
         else {
+            // count the number of unique board names in the board.yml files
             const command = `
         find '${workingDir}/boards' -type f -name 'board.yml' -print0 |
         xargs -0 yq eval-all '.board.name, .boards[].name' -N |
