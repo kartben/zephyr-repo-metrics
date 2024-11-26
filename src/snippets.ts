@@ -38,9 +38,19 @@ async function countZephyrSamples(repo: SimpleGit): Promise<Number> {
     return exec(`find '${workingDir}/samples' -type f | grep sample.yaml | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
 }
 
-async function countZephyrBoards(repo: SimpleGit): Promise<Number> {
+async function countZephyrBoards(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {
     let workingDir = await repo.revparse('--show-toplevel');
-    return exec(`find '${workingDir}/boards' -type f -name "*.yaml" -exec grep -h "identifier:" {} \\; | sed s/_ns$// | sort -u | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
+
+    if (context.moment.isBefore('2024-03-01T00:00:00.000Z')) {
+        return exec(`find '${workingDir}/boards' -type f -name "*.yaml" -exec grep -h "identifier:" {} \\; | sed s/_ns$// | sort -u | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
+    } else {
+        const command = `
+        find '${workingDir}/boards' -type f -name 'board.yml' -print0 |
+        xargs -0 yq eval-all '.board.name, .boards[].name' -N |
+        grep -Ev 'null' |
+        wc -l`;
+        return exec(command).then((res: any) => { return parseInt(res.stdout.trim()) });
+    }
 }
 
 async function countZephyrMaintainers(repo: SimpleGit): Promise<Number> {

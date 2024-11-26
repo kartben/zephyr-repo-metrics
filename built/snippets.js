@@ -54,10 +54,20 @@ function countZephyrSamples(repo) {
     });
 }
 exports.countZephyrSamples = countZephyrSamples;
-function countZephyrBoards(repo) {
+function countZephyrBoards(repo, context) {
     return __awaiter(this, void 0, void 0, function* () {
         let workingDir = yield repo.revparse('--show-toplevel');
-        return (0, child_process_promise_1.exec)(`find '${workingDir}/boards' -type f -name "*.yaml" -exec grep -h "identifier:" {} \\; | sed s/_ns$// | sort -u | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
+        if (context.moment.isBefore('2024-03-01T00:00:00.000Z')) {
+            return (0, child_process_promise_1.exec)(`find '${workingDir}/boards' -type f -name "*.yaml" -exec grep -h "identifier:" {} \\; | sed s/_ns$// | sort -u | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
+        }
+        else {
+            const command = `
+        find '${workingDir}/boards' -type f -name 'board.yml' -print0 |
+        xargs -0 yq eval-all '.board.name, .boards[].name' -N |
+        grep -Ev 'null' |
+        wc -l`;
+            return (0, child_process_promise_1.exec)(command).then((res) => { return parseInt(res.stdout.trim()); });
+        }
     });
 }
 exports.countZephyrBoards = countZephyrBoards;
