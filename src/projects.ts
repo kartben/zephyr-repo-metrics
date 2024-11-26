@@ -11,6 +11,7 @@ let projects: IProject[] = [
             { name: 'drivers', fn: snippets.countZephyrDrivers },
             { name: 'samples', fn: snippets.countZephyrSamples },
             { name: 'boards', fn: snippets.countZephyrBoards },
+            { name: 'maintainers', fn: snippets.countZephyrMaintainers },
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },

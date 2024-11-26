@@ -43,6 +43,25 @@ async function countZephyrBoards(repo: SimpleGit): Promise<Number> {
     return exec(`find '${workingDir}/boards' -type f -name "*.yaml" -exec grep -h "identifier:" {} \\; | sed s/_ns$// | sort -u | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
 }
 
+async function countZephyrMaintainers(repo: SimpleGit): Promise<Number> {
+    let workingDir = await repo.revparse('--show-toplevel');
+
+    // if MAINTAINERS file exists, use it and count the unique name/emails in it
+    //      format of a matching line is:
+    //      M:	Ruud Derwig <Ruud.Derwig@synopsys.com>
+    //      M:	Chuck Jordan <Chuck.Jordan@synopsys.com
+    // else, if CODEOWNERS files exist and MAINTAINERS.yml does not exist:
+    //      count unique github handles in CODEOWNERS file
+    // else:
+    //      yq '.[] | .maintainers[]' MAINTAINERS.yml | sort | uniq | wc -l
+    let cmd = `if [ -f '${workingDir}/MAINTAINERS' ]; then grep -h "^M:" '${workingDir}/MAINTAINERS' | sed "s/^M:\s*//" | sort -u | wc -l; \
+               elif [ -f '${workingDir}/CODEOWNERS' ] && [ ! -f '${workingDir}/MAINTAINERS.yml' ]; \
+               then grep -h "^[^#]*@" '${workingDir}/CODEOWNERS' | sed "s/.*@//" | sort -u | wc -l; \
+               else yq '.[] | .maintainers[]' '${workingDir}/MAINTAINERS.yml' | sort | uniq | wc -l; fi`;
+
+    return exec(cmd).then((res: any) => { return parseInt(res.stdout.trim()) });
+}
+
 // ----------------- //
 // FreeRTOS Snippets //
 // ----------------- //
@@ -76,14 +95,14 @@ async function countNuttXDrivers(repo: SimpleGit): Promise<Number> {
 
 async function loc(repo: SimpleGit): Promise<Number> {
     let workingDir = await repo.revparse('--show-toplevel');
-    return exec(`scc '${workingDir}' -f json`).then((res: any) => { 
+    return exec(`scc '${workingDir}' -f json`).then((res: any) => {
         try {
-            let out = JSON.parse(res.stdout) ; 
+            let out = JSON.parse(res.stdout);
             const sumOfLines = out.reduce((accumulator: number, currentValue: any) => {
                 return accumulator + currentValue.Lines;
-              }, 0);
+            }, 0);
 
-              return sumOfLines;
+            return sumOfLines;
         }
         catch {
             return null;
@@ -122,7 +141,7 @@ async function numberOfCommitsPastMonth(repo: SimpleGit, context: IAnalyticsSnip
 
 async function numberOfUniqueContributorsPastMonth(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {
     let { before, after } = getBeforeAfter(context);
-    
+
     return repo.raw(['shortlog', '-sn', 'HEAD', before, after]).then((x) => { return x.split(/\n/).length });
 }
 
@@ -139,6 +158,7 @@ export {
     countZephyrDrivers,
     countZephyrSamples,
     countZephyrBoards,
+    countZephyrMaintainers,
 
     countFreeRTOSBoards,
 
