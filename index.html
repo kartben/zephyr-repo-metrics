@@ -81,6 +81,14 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
+                <div class="card" id="maintainersCard">
+                    <div class="card-body">
+                        <h5 class="card-title">Maintainers</h5>
+                        <p class="card-text">...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
                 <div class="card" id="driversCard">
                     <div class="card-body">
                         <h5 class="card-title">Sensor Drivers</h5>
@@ -178,6 +186,7 @@
                     };
                 }
                 zephyrStats[dateKey].numberOfUniqueContributors = parseInt(row.numberOfUniqueContributorsPastMonth);
+                zephyrStats[dateKey].maintainers = parseInt(row.maintainers);
                 zephyrStats[dateKey].drivers = parseInt(row.drivers);
                 zephyrStats[dateKey].samples = parseInt(row.samples);
                 zephyrStats[dateKey].boards = parseInt(row.boards);
@@ -225,12 +234,10 @@
                 zephyrStats[prevYearKey]?.numberOfUniqueContributors
             ));
 
-
-            // Update dashboard cards
-            $('#uniqueContributorsCard .card-text').html(generateCardText(
-                latestData.numberOfUniqueContributors,
-                zephyrStats[prevMonthKey]?.numberOfUniqueContributors,
-                zephyrStats[prevYearKey]?.numberOfUniqueContributors
+            $('#maintainersCard .card-text').html(generateCardText(
+                latestData.maintainers,
+                zephyrStats[prevMonthKey]?.maintainers,
+                zephyrStats[prevYearKey]?.maintainers
             ));
 
             $('#driversCard .card-text').html(generateCardText(
