@@ -28,7 +28,7 @@ jobs:
       run: npm run zephyr-noteworthy-commits | tee output.ansi
 
     - name: Upload output as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: zephyr-noteworthy-commits-output
         path: output.ansi
