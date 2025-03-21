@@ -56,7 +56,7 @@ const SHOW_COMMIT_DETAILS = true;
 async function listPRs(showCommitDetails = true) {
     var latestBlogPostDate = await getMostRecentPostDate(TAG);
     // min date should be nov 15 2024
-    const sinceDate = moment.max(moment(latestBlogPostDate), moment('2024-11-15')).toISOString();
+    const sinceDate = moment.max(moment(latestBlogPostDate), moment('2025-03-06')).toISOString();
 
     // Use github search API to get the list of all pull requests merged since the last blog post
     // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests

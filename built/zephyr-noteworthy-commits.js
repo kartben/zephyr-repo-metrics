@@ -61,7 +61,7 @@ function listPRs(showCommitDetails = true) {
     return __awaiter(this, void 0, void 0, function* () {
         var latestBlogPostDate = yield getMostRecentPostDate(TAG);
         // min date should be nov 15 2024
-        const sinceDate = moment_1.default.max((0, moment_1.default)(latestBlogPostDate), (0, moment_1.default)('2024-11-15')).toISOString();
+        const sinceDate = moment_1.default.max((0, moment_1.default)(latestBlogPostDate), (0, moment_1.default)('2025-03-06')).toISOString();
         // Use github search API to get the list of all pull requests merged since the last blog post
         // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests
         const query = `repo:${owner}/${repo} is:pr is:merged merged:>${sinceDate}`;
