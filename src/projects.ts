@@ -218,6 +218,22 @@ let projects: IProject[] = [
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
+
+    {
+        name: 'Ariel OS',
+        url: 'https://github.com/ariel-os/ariel-os',
+        branch: 'main',
+        snippets: [
+            { name: 'drivers', fn: snippets.NULL_FUNCTION },
+            { name: 'samples', fn: snippets.getCountFoldersInSubFolderFn('/examples') },
+            { name: 'boards', fn: snippets.NULL_FUNCTION },
+            { name: 'maintainers', fn: snippets.NULL_FUNCTION },
+            { name: 'loc', fn: snippets.loc },
+            { name: 'numberOfCommits', fn: snippets.numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+        ]
+    }
 ];
 
 export {projects};
