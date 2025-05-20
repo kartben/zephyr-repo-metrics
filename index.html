@@ -63,6 +63,23 @@
             background-color: #f8f9fa;
             border-top: 1px solid #e9ecef;
         }
+
+        .badge.light-green {
+            background-color: #c8e6c9;
+            color: #087f23;
+        }
+        .badge.dark-green {
+            background-color: #087f23;
+            color: #fff;
+        }
+        .badge.light-red {
+            background-color: #ffcdd2;
+            color: #b71c1c;
+        }
+        .badge.dark-red {
+            background-color: #b71c1c;
+            color: #fff;
+        }
     </style>
 
 </head>
@@ -197,26 +214,35 @@
             }
 
             function generateCardText(current, prevMonth, prevYear) {
-                const getSignAndColorClass = (percentage) => {
-                    const sign = percentage >= 0 ? '+' : '';
-                    const colorClass = Math.abs(percentage) >= 10 ? 'dark' : 'light';
-
+                const getSignAndColorClass = (value) => {
+                    const sign = value >= 0 ? '+' : '';
+                    const colorClass = Math.abs(value) >= 10 ? 'dark' : 'light';
                     return {
                         sign,
-                        colorClass: `${colorClass}-${percentage >= 0 ? 'green' : 'red'}`
+                        colorClass: `${colorClass}-${value >= 0 ? 'green' : 'red'}`
                     };
                 };
 
-                const monthChange = calculatePercentageChange(current, prevMonth);
-                const yearChange = calculatePercentageChange(current, prevYear);
+                const monthAbs = current - (prevMonth ?? 0);
+                const yearAbs = current - (prevYear ?? 0);
+                const monthChange = prevMonth ? ((current - prevMonth) / prevMonth) * 100 : 0;
+                const yearChange = prevYear ? ((current - prevYear) / prevYear) * 100 : 0;
 
-                const monthSignAndColor = getSignAndColorClass(monthChange);
-                const yearSignAndColor = getSignAndColorClass(yearChange);
+                const monthSignAndColor = getSignAndColorClass(monthAbs);
+                const yearSignAndColor = getSignAndColorClass(yearAbs);
 
                 return `
-        <span class="current-value">${current}</span><br>
-        Month-over-Month: <span class="${monthSignAndColor.colorClass}">${monthSignAndColor.sign}${monthChange.toFixed(2)}%</span><br>
-        Year-over-Year: <span class="${yearSignAndColor.colorClass}">${yearSignAndColor.sign}${yearChange.toFixed(2)}%</span>
+        <span class="current-value mb-2 d-block">${current}</span>
+        <div class="mb-1">
+            <span class="fw-bold">Month-over-Month:</span>
+            <span class="badge ${monthSignAndColor.colorClass} me-1" style="font-size:1em;">${monthSignAndColor.sign}${monthAbs}</span>
+            <span class="text-muted small">(${monthChange >= 0 ? '+' : ''}${monthChange.toFixed(2)}%)</span>
+        </div>
+        <div>
+            <span class="fw-bold">Year-over-Year:</span>
+            <span class="badge ${yearSignAndColor.colorClass} me-1" style="font-size:1em;">${yearSignAndColor.sign}${yearAbs}</span>
+            <span class="text-muted small">(${yearChange >= 0 ? '+' : ''}${yearChange.toFixed(2)}%)</span>
+        </div>
     `;
 
             }
