@@ -9,6 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
     <style>
         body {
@@ -26,6 +27,11 @@
         .card:hover {
             box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
             transform: translateY(-5px);
+        }
+
+        .clickable-card:hover {
+            box-shadow: 0 8px 16px 0 rgba(99, 102, 241, 0.08), 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+            transform: translateY(-3px);
         }
 
         .card-title {
@@ -80,6 +86,102 @@
             background-color: #b71c1c;
             color: #fff;
         }
+
+        .clickable-card {
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+
+
+        .chart-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #a8a9e7, #b5a2e0);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        .chart-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            opacity: 1;
+        }
+
+        .chart-button:active {
+            transform: scale(0.95);
+        }
+
+        .clickable-card .card-title {
+            padding-right: 60px;
+        }
+
+
+
+        .chart-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .chart-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1200px;
+            height: 80%;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .chart-close {
+            color: #aaa;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            z-index: 1001;
+        }
+
+        .chart-close:hover,
+        .chart-close:focus {
+            color: #000;
+            text-decoration: none;
+        }
+
+        .chart-container {
+            position: relative;
+            height: calc(100% - 60px);
+            margin-top: 40px;
+        }
+
+        #contributorsChart {
+            background-color: #ffffff;
+            border-radius: 10px;
+        }
     </style>
 
 </head>
@@ -90,10 +192,13 @@
         <h2 class="text-center mb-4"></h2>
         <div class="row">
             <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card" id="uniqueContributorsCard">
+                <div class="card clickable-card" id="uniqueContributorsCard">
                     <div class="card-body">
                         <h5 class="card-title">Contributors (past month)</h5>
                         <p class="card-text">...</p>
+                        <button class="chart-button" title="View Contributors Chart">
+                            📊
+                        </button>
                     </div>
                 </div>
             </div>
@@ -122,12 +227,37 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card" id="boardsCard">
+                <div class="card clickable-card" id="boardsCard">
                     <div class="card-body">
                         <h5 class="card-title">Boards</h5>
                         <p class="card-text">...</p>
+                        <button class="chart-button" title="View Boards Chart">
+                            📊
+                        </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contributors Chart Modal -->
+    <div id="contributorsChartModal" class="chart-modal">
+        <div class="chart-modal-content">
+            <span class="chart-close" data-modal="contributorsChartModal">&times;</span>
+            <h3 style="margin-top: 0; color: #007BFF; font-weight: bold;">Unique Contributors per Month</h3>
+            <div class="chart-container">
+                <canvas id="contributorsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boards Chart Modal -->
+    <div id="boardsChartModal" class="chart-modal">
+        <div class="chart-modal-content">
+            <span class="chart-close" data-modal="boardsChartModal">&times;</span>
+            <h3 style="margin-top: 0; color: #007BFF; font-weight: bold;">Supported Boards</h3>
+            <div class="chart-container">
+                <canvas id="boardsChart"></canvas>
             </div>
         </div>
     </div>
@@ -142,12 +272,16 @@
 
 
     <script>
+        // Global variable to store all CSV data for chart functionality
+        let allData = [];
+
         // Fetch CSV data and parse it
         const url = "https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv";
         Papa.parse(url, {
             download: true,
             header: true,
             complete: function (results) {
+                allData = results.data;
                 processData(results.data);
             }
         });
@@ -283,6 +417,372 @@
                 zephyrStats[prevMonthKey]?.boards,
                 zephyrStats[prevYearKey]?.boards
             ));
+        }
+
+        // Chart functionality
+        let contributorsChart = null;
+        let boardsChart = null;
+
+        // Modal event handlers
+        $('#uniqueContributorsCard').click(function(e) {
+            $('#contributorsChartModal').show();
+            createChart('contributors');
+        });
+
+        $('#boardsCard').click(function(e) {
+            $('#boardsChartModal').show();
+            createChart('boards');
+        });
+
+        $('.chart-close').click(function() {
+            const modalId = $(this).data('modal');
+            $(`#${modalId}`).hide();
+
+            if (modalId === 'contributorsChartModal' && contributorsChart) {
+                contributorsChart.destroy();
+                contributorsChart = null;
+            } else if (modalId === 'boardsChartModal' && boardsChart) {
+                boardsChart.destroy();
+                boardsChart = null;
+            }
+        });
+
+        // Close modal when clicking outside
+        $(window).click(function(event) {
+            if (event.target.id === 'contributorsChartModal') {
+                $('#contributorsChartModal').hide();
+                if (contributorsChart) {
+                    contributorsChart.destroy();
+                    contributorsChart = null;
+                }
+            } else if (event.target.id === 'boardsChartModal') {
+                $('#boardsChartModal').hide();
+                if (boardsChart) {
+                    boardsChart.destroy();
+                    boardsChart = null;
+                }
+            }
+        });
+
+        // Close modal with Escape key
+        $(document).keydown(function(event) {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                // Check if contributors modal is open
+                if ($('#contributorsChartModal').is(':visible')) {
+                    $('#contributorsChartModal').hide();
+                    if (contributorsChart) {
+                        contributorsChart.destroy();
+                        contributorsChart = null;
+                    }
+                }
+                // Check if boards modal is open
+                else if ($('#boardsChartModal').is(':visible')) {
+                    $('#boardsChartModal').hide();
+                    if (boardsChart) {
+                        boardsChart.destroy();
+                        boardsChart = null;
+                    }
+                }
+            }
+        });
+
+        function createChart(type) {
+            const config = getChartConfig(type);
+
+            if (type === 'contributors') {
+                if (contributorsChart) {
+                    contributorsChart.destroy();
+                }
+            } else if (type === 'boards') {
+                if (boardsChart) {
+                    boardsChart.destroy();
+                }
+            }
+
+            const chartData = processDataForChart(config.dataField, config.aggregation);
+            const ctx = document.getElementById(config.canvasId).getContext('2d');
+
+            // Generate distinct colors for each RTOS
+            const colors = [
+                '#8B5CF6', // Purple for Zephyr (will be overridden)
+                '#EF4444', // Red
+                '#10B981', // Green
+                '#F59E0B', // Yellow
+                '#3B82F6', // Blue
+                '#8B5A2B', // Brown
+                '#EC4899', // Pink
+                '#06B6D4', // Cyan
+                '#84CC16', // Lime
+                '#F97316'  // Orange
+            ];
+
+            const datasets = chartData.projects.map((project, index) => {
+                const isZephyr = project.toLowerCase() === 'zephyr';
+                return {
+                    label: project,
+                    data: chartData.quarters.map(quarter => {
+                        const entry = chartData.data.find(d => d.project === project && d.quarter === quarter);
+                        return entry ? entry.value : null;
+                    }),
+                    borderColor: isZephyr ? '#8B5CF6' : colors[index % colors.length],
+                    backgroundColor: isZephyr ? 'rgba(139, 92, 246, 0.1)' : `${colors[index % colors.length]}20`,
+                    borderWidth: isZephyr ? 4 : 2,
+                    tension: 0,
+                    pointRadius: isZephyr ? 6 : 4,
+                    pointHoverRadius: isZephyr ? 8 : 6,
+                    pointBackgroundColor: isZephyr ? '#8B5CF6' : colors[index % colors.length],
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    fill: false,
+                    spanGaps: true
+                };
+            });
+
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.quarters,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: false,
+                            text: config.title,
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#333'
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    size: 12
+                                },
+                                generateLabels: function(chart) {
+                                    // Generate labels in the same order as datasets
+                                    return chart.data.datasets.map((dataset, index) => {
+                                        const isZephyr = dataset.label.toLowerCase() === 'zephyr';
+                                        return {
+                                            text: dataset.label,
+                                            fillStyle: dataset.borderColor,
+                                            strokeStyle: dataset.borderColor,
+                                            lineWidth: dataset.borderWidth,
+                                            pointStyle: 'circle',
+                                            hidden: false,
+                                            datasetIndex: index,
+                                            font: isZephyr ? { weight: 'bold', size: 14 } : { size: 12 }
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#333',
+                            bodyColor: '#666',
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return `Quarter: ${tooltipItems[0].label}`;
+                                },
+                                label: function(context) {
+                                    const projectName = context.dataset.label;
+                                    const value = context.parsed.y;
+                                    return `${projectName}: ${value !== null ? value + config.tooltipSuffix : 'No data'}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: false,
+                                text: 'Quarter',
+                                font: {
+                                    weight: 'bold',
+                                    size: 14
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: false,
+                                text: config.yAxisLabel,
+                                font: {
+                                    weight: 'bold',
+                                    size: 14
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    elements: {
+                        point: {
+                            hoverRadius: 8
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+
+            // Assign chart to appropriate variable
+            if (type === 'contributors') {
+                contributorsChart = chart;
+            } else if (type === 'boards') {
+                boardsChart = chart;
+            }
+        }
+
+        function getChartConfig(type) {
+            switch(type) {
+                case 'contributors':
+                    return {
+                        canvasId: 'contributorsChart',
+                        dataField: 'numberOfUniqueContributorsPastMonth',
+                        title: 'Contributors Per Quarter Since 2018',
+                        yAxisLabel: 'Number of Contributors',
+                        tooltipSuffix: ' contributors',
+                        aggregation: 'max'
+                    };
+                case 'boards':
+                    return {
+                        canvasId: 'boardsChart',
+                        dataField: 'boards',
+                        title: 'Supported Boards Per Quarter Since 2018',
+                        yAxisLabel: 'Number of Boards',
+                        tooltipSuffix: ' boards',
+                        aggregation: 'max'
+                    };
+                default:
+                    throw new Error(`Unknown chart type: ${type}`);
+            }
+        }
+
+        function processDataForChart(dataField, aggregation) {
+            // Filter data from 2018-01-01 onwards
+            const filteredData = allData.filter(row => {
+                const rowDate = moment(row.date);
+                return rowDate.isAfter('2017-12-31') && row[dataField];
+            });
+
+            // Group by project and quarter
+            const groupedData = {};
+            const quartersSet = new Set();
+            const projectsSet = new Set();
+
+            filteredData.forEach(row => {
+                const quarter = moment(row.date).format('YYYY [Q]Q');
+                const project = row.project;
+                const value = parseInt(row[dataField]);
+
+                projectsSet.add(project);
+                quartersSet.add(quarter);
+
+                if (!groupedData[project]) {
+                    groupedData[project] = {};
+                }
+
+                // Collect all values for each quarter to calculate average
+                if (!groupedData[project][quarter]) {
+                    groupedData[project][quarter] = [];
+                }
+                groupedData[project][quarter].push(value);
+            });
+
+            // Calculate aggregated values for each quarter
+            Object.keys(groupedData).forEach(project => {
+                Object.keys(groupedData[project]).forEach(quarter => {
+                    const values = groupedData[project][quarter];
+                    let aggregatedValue;
+
+                    if (aggregation === 'max') {
+                        aggregatedValue = Math.max(...values);
+                    } else if (aggregation === 'average') {
+                        aggregatedValue = values.reduce((sum, val) => sum + val, 0) / values.length;
+                        aggregatedValue = Math.round(aggregatedValue);
+                    } else {
+                        throw new Error(`Unknown aggregation method: ${aggregation}`);
+                    }
+
+                    groupedData[project][quarter] = aggregatedValue;
+                });
+            });
+
+            // Sort quarters chronologically
+            const quarters = Array.from(quartersSet).sort((a, b) => {
+                const [yearA, quarterA] = a.split(' Q');
+                const [yearB, quarterB] = b.split(' Q');
+                if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
+                return parseInt(quarterA) - parseInt(quarterB);
+            });
+
+            // Sort projects by their score in the most recent quarter (highest first)
+            const mostRecentQuarter = quarters[quarters.length - 1];
+            const projects = Array.from(projectsSet).sort((a, b) => {
+                const aScore = groupedData[a] && groupedData[a][mostRecentQuarter] ? groupedData[a][mostRecentQuarter] : 0;
+                const bScore = groupedData[b] && groupedData[b][mostRecentQuarter] ? groupedData[b][mostRecentQuarter] : 0;
+                return bScore - aScore; // Sort descending (highest score first)
+            });
+
+            // Create final data structure
+            const data = [];
+            projects.forEach(project => {
+                quarters.forEach(quarter => {
+                    if (groupedData[project] && groupedData[project][quarter]) {
+                        data.push({
+                            project: project,
+                            quarter: quarter,
+                            value: groupedData[project][quarter]
+                        });
+                    }
+                });
+            });
+
+            return {
+                projects: projects,
+                quarters: quarters,
+                data: data
+            };
         }
     </script>
 </body>
