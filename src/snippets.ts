@@ -103,6 +103,17 @@ async function countNuttXDrivers(repo: SimpleGit): Promise<Number> {
 }
 
 
+// ----------------- //
+// RTEMS Snippets    //
+// ----------------- //
+
+/* Count .yml files that contain a bsp definition (line starting with 'bsp:' ) */
+/* TODO: check if this is really the right way to do this */
+async function countRTEMSBoards(repo: SimpleGit): Promise<Number> {
+    let workingDir = await repo.revparse('--show-toplevel');
+    return exec(`find '${workingDir}' -type f -name "*.yml" | xargs grep -h "^bsp:" | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
+}
+
 
 
 async function loc(repo: SimpleGit): Promise<Number> {
@@ -176,6 +187,8 @@ export {
 
     countNuttXBoards,
     countNuttXDrivers,
+
+    countRTEMSBoards,
 
     loc,
 

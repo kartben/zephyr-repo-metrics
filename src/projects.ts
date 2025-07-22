@@ -233,7 +233,23 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
-    }
+    },
+
+    {
+        name: 'RTEMS',
+        url: 'https://gitlab.rtems.org/rtems/rtos/rtems.git',
+        branch: 'main',
+        snippets: [
+            { name: 'drivers', fn: snippets.NULL_FUNCTION },
+            { name: 'samples', fn: snippets.NULL_FUNCTION },
+            { name: 'boards', fn: snippets.countRTEMSBoards },
+            { name: 'maintainers', fn: snippets.NULL_FUNCTION },
+            { name: 'loc', fn: snippets.loc },
+            { name: 'numberOfCommits', fn: snippets.numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+        ]
+    },
 ];
 
 export {projects};
