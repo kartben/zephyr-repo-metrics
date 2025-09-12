@@ -2,12 +2,15 @@
   "name": "zephyr-project-stats",
   "description": "A tool to gather misc. stats for the Zephyr RTOS open source project",
   "version": "0.1.0",
+  "type": "module",
   "main": "built/main.js",
   "bin": {
     "zstats": "./built/main.js"
   },
   "dependencies": {
     "@octokit/core": "^7.0.3",
+    "@octokit/plugin-paginate-rest": "^13.1.1",
+    "@octokit/plugin-rest-endpoint-methods": "^16.0.0",
     "@octokit/plugin-throttling": "^11.0.1",
     "@octokit/rest": "^22.0.0",
     "@types/node-fetch": "^2.6.4",

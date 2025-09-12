@@ -1,5 +1,27 @@
-import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
+// Suppress deprecation warnings from Octokit
+const originalConsoleWarn = console.warn;
+const originalConsoleLog = console.log;
+
+console.warn = (...args) => {
+    const message = args.join(' ');
+    if (message.includes('is deprecated') && message.includes('@octokit')) {
+        return; // Suppress Octokit deprecation warnings
+    }
+    originalConsoleWarn.apply(console, args);
+};
+
+console.log = (...args) => {
+    const message = args.join(' ');
+    if (message.includes('is deprecated') && message.includes('@octokit')) {
+        return; // Suppress Octokit deprecation warnings
+    }
+    originalConsoleLog.apply(console, args);
+};
+
+import { Octokit } from "@octokit/core";
 import { throttling } from "@octokit/plugin-throttling";
+import { paginateRest } from "@octokit/plugin-paginate-rest";
+import { restEndpointMethods } from "@octokit/plugin-rest-endpoint-methods";
 
 import c from 'ansi-colors';
 import terminalLink from 'terminal-link';
@@ -33,14 +55,14 @@ async function getMostRecentPostDate(tag: number): Promise<string | null> {
 // get GitHub API token from environment variable
 const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN;
 
-const MyOctokit = Octokit.plugin(throttling);
+const MyOctokit = Octokit.plugin(throttling, paginateRest, restEndpointMethods);
 const octokit = new MyOctokit({
     auth: GITHUB_API_TOKEN,
     throttle: {
-        onSecondaryRateLimit: (retryAfter, options) => {
+        onSecondaryRateLimit: (retryAfter: number, options: any) => {
             return true;
         },
-        onRateLimit: (retryAfter, options, octokit, retryCount) => {
+        onRateLimit: (retryAfter: number, options: any, octokit: any, retryCount: number) => {
             if (retryCount < 5) {
                 return true;
             }
@@ -55,8 +77,7 @@ const SHOW_COMMIT_DETAILS = true;
 
 async function listPRs(showCommitDetails = true) {
     var latestBlogPostDate = await getMostRecentPostDate(TAG);
-    // min date should be nov 15 2024
-    const sinceDate = moment.max(moment(latestBlogPostDate), moment('2025-03-06')).toISOString();
+    const sinceDate = moment.max(moment(latestBlogPostDate), moment('2025-09-05')).toISOString();
 
     // Use github search API to get the list of all pull requests merged since the last blog post
     // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests
@@ -68,9 +89,12 @@ async function listPRs(showCommitDetails = true) {
     });
 
     console.log(`Found ${searchResult.length} pull requests merged since ${sinceDate}`);
+    console.log(`Latest blog post date: ${latestBlogPostDate}`);
+    console.log(`Using since date: ${sinceDate}`);
+    console.log(`Query: ${query}`);
 
     // Sort pull requests by title
-    searchResult.sort((a, b) => {
+    searchResult.sort((a: any, b: any) => {
         return a.title.localeCompare(b.title);
     });
 
@@ -87,8 +111,8 @@ async function listPRs(showCommitDetails = true) {
         if (author) {
             const query = `repo:${owner}/${repo} is:pr is:merged author:${author} closed:<=${pr.closed_at}`;
             try {
-                const { status: searchStatus, data: searchResults } = await octokit.rest.search.issuesAndPullRequests({ q: query });
-                if (searchResults.total_count === 1) {
+                const searchResults = await octokit.rest.search.issuesAndPullRequests({ q: query });
+                if (searchResults.data.total_count === 1) {
                     firstTimeContributors.push(pr.user);
                     isFirstPR = true;
                 }

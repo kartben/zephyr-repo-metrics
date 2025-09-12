@@ -25,7 +25,7 @@ jobs:
       run: npm install
 
     - name: Run zephyr-noteworthy-commits npm script and capture output
-      run: npm run zephyr-noteworthy-commits | tee output.ansi
+      run: npm run zephyr-noteworthy-commits 2>/dev/null | tee output.ansi
 
     - name: Upload output as artifact
       uses: actions/upload-artifact@v4
