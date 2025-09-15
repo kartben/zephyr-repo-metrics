@@ -6,9 +6,9 @@ import { MultiBar, Presets, SingleBar } from 'cli-progress';
 import ansiColors from 'ansi-colors';
 import fs from 'fs';
 
-import { IAnalyticsSnippet, IProject, IResults } from './interfaces';
-import * as snippets from './snippets';
-import { projects } from './projects';
+import { IAnalyticsSnippet, IProject, IResults } from './interfaces.js';
+import * as snippets from './snippets.js';
+import { projects } from './projects.js';
 
 const DATES: string[] = [];
 

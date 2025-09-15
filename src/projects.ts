@@ -1,6 +1,6 @@
 // import interfaces
-import { IProject } from './interfaces';
-import * as snippets from './snippets';
+import { IProject } from './interfaces.js';
+import * as snippets from './snippets.js';
 
 let projects: IProject[] = [
     {

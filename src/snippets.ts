@@ -1,4 +1,4 @@
-import { IAnalyticsSnippetContext } from './interfaces';
+import { IAnalyticsSnippetContext } from './interfaces.js';
 import { SimpleGit } from 'simple-git';
 import { exec } from 'child-process-promise';
 

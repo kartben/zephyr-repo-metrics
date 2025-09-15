@@ -1,4 +1,4 @@
-import * as snippets from './snippets';
+import * as snippets from './snippets.js';
 let projects = [
     {
         name: 'Zephyr',
