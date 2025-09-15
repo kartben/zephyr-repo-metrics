@@ -20,6 +20,7 @@
     "moment": "^2.29.4",
     "node-fetch": "^2.6.11",
     "parse-diff": "^0.11.1",
+    "rss-parser": "^3.13.0",
     "simple-git": "^3.18.0",
     "terminal-link": "^2.1.1"
   },

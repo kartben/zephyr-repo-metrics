@@ -28,6 +28,8 @@ import terminalLink from 'terminal-link';
 import fetch from 'node-fetch';
 import parseDiff from 'parse-diff';
 import moment from 'moment';
+import Parser from 'rss-parser';
+
 
 const BLOG_URL = 'https://blog.benjamin-cabe.com';
 const TAG = 529; //'zephyr-weekly-update';
@@ -50,6 +52,13 @@ async function getMostRecentPostDate(tag: number): Promise<string | null> {
     }
 
     return null;
+}
+
+async function getMostRecentPodcastEpisode(): Promise<string | null> {
+    const apiUrl = 'http://feeds.libsyn.com/592130/rss';
+    const feed = await new Parser().parseURL(apiUrl);
+
+    return feed.items[0].pubDate ?? null;
 }
 
 // get GitHub API token from environment variable
@@ -77,7 +86,13 @@ const SHOW_COMMIT_DETAILS = true;
 
 async function listPRs(showCommitDetails = true) {
     var latestBlogPostDate = await getMostRecentPostDate(TAG);
-    const sinceDate = moment.max(moment(latestBlogPostDate), moment('2025-09-05')).toISOString();
+    var latestPodcastEpisodeDate = await getMostRecentPodcastEpisode();
+
+    // remove 6 hours or so, we might have missed some stuff very recently merged between the time
+    // we recorded and the podcast / blog went live
+    const sinceDate = moment.max(
+        moment(latestBlogPostDate),
+        moment(latestPodcastEpisodeDate)).subtract(6, 'hours').toISOString();
 
     // Use github search API to get the list of all pull requests merged since the last blog post
     // https://docs.github.com/en/rest/reference/search#search-issues-and-pull-requests
