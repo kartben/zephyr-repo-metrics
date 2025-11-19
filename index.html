@@ -700,10 +700,10 @@
         }
 
         function processDataForChart(dataField, aggregation) {
-            // Filter data from 2018-01-01 onwards
+            // Filter data from 2019-01-01 onwards
             const filteredData = allData.filter(row => {
                 const rowDate = moment(row.date);
-                return rowDate.isAfter('2017-12-31') && row[dataField];
+                return rowDate.isAfter('2018-12-31') && row[dataField];
             });
 
             // Group by project and quarter
