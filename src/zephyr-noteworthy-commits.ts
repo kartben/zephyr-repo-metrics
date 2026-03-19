@@ -85,8 +85,8 @@ const repo = 'zephyr';
 const SHOW_COMMIT_DETAILS = true;
 
 async function listPRs(showCommitDetails = true) {
-    var latestBlogPostDate = await getMostRecentPostDate(TAG);
-    var latestPodcastEpisodeDate = await getMostRecentPodcastEpisode();
+    var latestBlogPostDate = await getMostRecentPostDate(TAG) ?? '1970-01-01';
+    var latestPodcastEpisodeDate = await getMostRecentPodcastEpisode() ?? '1970-01-01';
 
     // remove 6 hours or so, we might have missed some stuff very recently merged between the time
     // we recorded and the podcast / blog went live
