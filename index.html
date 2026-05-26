@@ -829,8 +829,12 @@
                 const quarter = toQuarter(row.date);
                 projects.add(row.project);
                 quarterKeys.add(quarter);
-                groupedData[row.project] ??= {};
-                groupedData[row.project][quarter] ??= [];
+                if (!groupedData[row.project]) {
+                    groupedData[row.project] = {};
+                }
+                if (!groupedData[row.project][quarter]) {
+                    groupedData[row.project][quarter] = [];
+                }
                 groupedData[row.project][quarter].push(row[metricKey]);
             });
 
@@ -903,7 +907,8 @@
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
-                timeZone: 'UTC'
+                timeZone: 'UTC',
+                timeZoneName: 'short'
             }).format(new Date(dateValue));
         }
 
