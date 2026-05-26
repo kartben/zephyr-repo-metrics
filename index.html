@@ -408,6 +408,7 @@
             {
                 key: 'numberOfUniqueContributorsPastMonth',
                 title: 'Contributors',
+                eyebrow: 'Past month',
                 subtitle: 'Active contributors over the past month',
                 tone: 'primary',
                 icon: '👥',
@@ -419,6 +420,7 @@
             {
                 key: 'maintainers',
                 title: 'Maintainers',
+                eyebrow: 'Project scope',
                 subtitle: 'Maintainers tracked in the Zephyr project',
                 tone: 'positive',
                 tooltipSuffix: ' maintainers',
@@ -430,6 +432,7 @@
             {
                 key: 'drivers',
                 title: 'Sensor drivers',
+                eyebrow: 'Project scope',
                 subtitle: 'Sensor driver support tracked in the repository',
                 tone: 'success',
                 tooltipSuffix: ' drivers',
@@ -441,6 +444,7 @@
             {
                 key: 'samples',
                 title: 'Samples',
+                eyebrow: 'Project scope',
                 subtitle: 'Reference samples currently represented in the dataset',
                 tone: 'warning',
                 tooltipSuffix: ' samples',
@@ -452,6 +456,7 @@
             {
                 key: 'boards',
                 title: 'Boards',
+                eyebrow: 'Project scope',
                 subtitle: 'Supported boards highlighted by the repository metrics',
                 tone: 'danger',
                 tooltipSuffix: ' boards',
@@ -612,7 +617,7 @@
                 <article class="metric-card" role="button" tabindex="0" data-metric-key="${metric.key}" aria-label="Open ${metric.title} chart">
                     <div class="metric-card-header">
                         <div>
-                            <div class="metric-label">${metric.title}</div>
+                            <div class="metric-label">${metric.eyebrow}</div>
                             <h3 class="metric-title">${metric.title}</h3>
                         </div>
                         <div class="metric-icon" data-tone="${metric.tone}">${metric.icon}</div>
@@ -654,8 +659,8 @@
             const delta = current - previous;
             const percent = previous === 0 ? null : (delta / previous) * 100;
             return {
-                deltaLabel: `${delta > 0 ? '+' : ''}${formatNumber(delta)}`,
-                percentLabel: percent === null ? 'No prior baseline' : `${percent > 0 ? '+' : ''}${percent.toFixed(1)}%`,
+                deltaLabel: formatSignedValue(delta),
+                percentLabel: percent === null ? 'No prior baseline' : formatSignedPercent(percent),
                 tone: getTrendTone(delta)
             };
         }
@@ -879,6 +884,14 @@
             return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
         }
 
+        function formatSignedValue(value) {
+            return `${value >= 0 ? '+' : ''}${formatNumber(value)}`;
+        }
+
+        function formatSignedPercent(value) {
+            return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+        }
+
         function formatTimestamp(dateValue) {
             return new Intl.DateTimeFormat('en-US', {
                 month: 'long',
@@ -900,8 +913,10 @@
         }
 
         function shiftMonth(dateValue, offset) {
-            const shifted = new Date(Date.UTC(dateValue.getUTCFullYear(), dateValue.getUTCMonth() + offset, 1));
-            return shifted.toISOString().slice(0, 10).replace(/-01$/, `-${String(new Date(Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, 0)).getUTCDate()).padStart(2, '0')}`);
+            const targetYear = dateValue.getUTCFullYear() + Math.floor((dateValue.getUTCMonth() + offset) / 12);
+            const targetMonth = ((dateValue.getUTCMonth() + offset) % 12 + 12) % 12;
+            const monthEnd = new Date(Date.UTC(targetYear, targetMonth + 1, 0));
+            return monthEnd.toISOString().slice(0, 10);
         }
 
         function toDate(dateString) {
