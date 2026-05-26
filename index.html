@@ -657,13 +657,9 @@
             }
 
             const delta = current - previous;
-            const percent = previous === 0 ? null : (delta / previous) * 100;
-            const percentLabel = previous === 0
-                ? (delta > 0 ? 'New baseline from 0' : 'No change from 0')
-                : formatSignedPercent(percent);
             return {
                 deltaLabel: formatSignedValue(delta),
-                percentLabel,
+                percentLabel: formatComparisonPercent(previous, delta),
                 tone: getTrendTone(delta)
             };
         }
@@ -897,6 +893,13 @@
 
         function formatSignedPercent(value) {
             return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+        }
+
+        function formatComparisonPercent(previous, delta) {
+            if (previous === 0) {
+                return delta > 0 ? 'New baseline from 0' : 'No change from 0';
+            }
+            return formatSignedPercent((delta / previous) * 100);
         }
 
         function formatTimestamp(dateValue) {
