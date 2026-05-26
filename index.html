@@ -599,8 +599,8 @@
             const rowsByDate = new Map(zephyrRows.map((row) => [row.date, row]));
             const latestRow = zephyrRows[zephyrRows.length - 1];
             const latestDate = toDate(latestRow.date);
-            const prevMonthKey = shiftMonth(latestDate, -1);
-            const prevYearKey = shiftMonth(latestDate, -12);
+            const prevMonthKey = getMonthEndKey(latestDate, -1);
+            const prevYearKey = getMonthEndKey(latestDate, -12);
 
             document.getElementById('latestSnapshotLabel').textContent = formatMonth(latestDate);
             document.getElementById('metricGrid').innerHTML = METRICS
@@ -658,9 +658,12 @@
 
             const delta = current - previous;
             const percent = previous === 0 ? null : (delta / previous) * 100;
+            const percentLabel = previous === 0
+                ? (delta > 0 ? 'New baseline from 0' : 'No change from 0')
+                : formatSignedPercent(percent);
             return {
                 deltaLabel: formatSignedValue(delta),
-                percentLabel: percent === null ? 'No prior baseline' : formatSignedPercent(percent),
+                percentLabel,
                 tone: getTrendTone(delta)
             };
         }
@@ -912,7 +915,7 @@
             }).format(dateValue);
         }
 
-        function shiftMonth(dateValue, offset) {
+        function getMonthEndKey(dateValue, offset) {
             const targetYear = dateValue.getUTCFullYear() + Math.floor((dateValue.getUTCMonth() + offset) / 12);
             const targetMonth = ((dateValue.getUTCMonth() + offset) % 12 + 12) % 12;
             const monthEnd = new Date(Date.UTC(targetYear, targetMonth + 1, 0));
