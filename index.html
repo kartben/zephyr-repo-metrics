@@ -551,7 +551,7 @@
                         <h2>Core metrics</h2>
                         <p>Click any chart button to inspect the shared quarterly comparison view for that metric.</p>
                     </div>
-                    <div class="section-pill"><i class="bi bi-magic"></i> Bootswatch Zephyr theme + custom dashboard polish</div>
+                    <div class="section-pill"><i class="bi bi-stars"></i> Bootswatch Zephyr theme + custom dashboard polish</div>
                 </div>
                 <div id="dashboardAlert" class="dashboard-alert d-none" role="alert"></div>
                 <div id="dashboardMetrics" class="row g-4"></div>
@@ -700,12 +700,12 @@
         function renderMetricCards() {
             dashboardMetrics.innerHTML = METRIC_CONFIG.map(metric => `
                 <div class="col-12 col-md-6 col-xl-4">
-                    <article class="metric-card" style="--metric-accent:${metric.accent}; --metric-accent-soft:${metric.accentSoft};">
+                    <article class="metric-card" role="region" aria-labelledby="${metric.id}-title" style="--metric-accent:${metric.accent}; --metric-accent-soft:${metric.accentSoft};">
                         <div class="metric-card__header">
                             <div>
                                 <span class="metric-icon"><i class="bi ${metric.icon}"></i></span>
                                 <div class="metric-kicker">${metric.kicker}</div>
-                                <h2 class="metric-title">${metric.label}</h2>
+                                <h2 id="${metric.id}-title" class="metric-title">${metric.label}</h2>
                                 <p class="metric-description">${metric.description}</p>
                             </div>
                             <button class="metric-chart-button" type="button" data-open-chart="${metric.id}" aria-label="Open ${metric.label} chart" title="Open ${metric.label} chart">
@@ -765,24 +765,24 @@
             zephyrRows.forEach(row => {
                 const dateKey = moment(row.date).format('YYYY-MM-DD');
                 stats[dateKey] = {
-                    numberOfUniqueContributors: parseMetricValue(row.numberOfUniqueContributorsPastMonth),
-                    maintainers: parseMetricValue(row.maintainers),
-                    drivers: parseMetricValue(row.drivers),
-                    samples: parseMetricValue(row.samples),
-                    boards: parseMetricValue(row.boards)
+                    numberOfUniqueContributors: parseIntegerMetric(row.numberOfUniqueContributorsPastMonth),
+                    maintainers: parseIntegerMetric(row.maintainers),
+                    drivers: parseIntegerMetric(row.drivers),
+                    samples: parseIntegerMetric(row.samples),
+                    boards: parseIntegerMetric(row.boards)
                 };
             });
 
             return stats;
         }
 
-        function parseMetricValue(value) {
+        function parseIntegerMetric(value) {
             const parsed = Number.parseInt(value, 10);
             return Number.isFinite(parsed) ? parsed : null;
         }
 
         function formatSignedNumber(value) {
-            const sign = value > 0 ? '+' : value < 0 ? '−' : '±';
+            const sign = value > 0 ? '+' : value < 0 ? '-' : '+/-';
             return `${sign}${numberFormatter.format(Math.abs(value))}`;
         }
 
@@ -792,7 +792,7 @@
             }
 
             const percent = ((current - previous) / previous) * 100;
-            const sign = percent > 0 ? '+' : percent < 0 ? '−' : '±';
+            const sign = percent > 0 ? '+' : percent < 0 ? '-' : '+/-';
             return `${sign}${Math.abs(percent).toFixed(1)}%`;
         }
 
@@ -893,7 +893,7 @@
             filteredData.forEach(row => {
                 const quarter = moment(row.date).format('YYYY [Q]Q');
                 const project = row.project;
-                const value = parseMetricValue(row[metric.csvField]);
+                const value = parseIntegerMetric(row[metric.csvField]);
 
                 if (value === null) {
                     return;
