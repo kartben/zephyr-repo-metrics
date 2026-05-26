@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zephyr Project Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/morph/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
@@ -13,24 +13,45 @@
 
     <style>
         body {
-            background-color: #f5f5f5;
+            background: linear-gradient(180deg, #f1f5ff 0%, #f8f9ff 45%, #fbfcff 100%);
             font-family: 'Open Sans', 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        .page-shell {
+            padding-top: 3rem;
+            padding-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.35rem;
+        }
+
+        .dashboard-subtitle {
+            font-size: 1.05rem;
+            color: #5e6b8a;
+            margin-bottom: 2rem;
         }
 
         .card {
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            box-shadow: 0 16px 32px rgba(59, 78, 125, 0.08);
             border: none;
-            border-radius: 10px;
-            transition: 0.3s;
+            border-radius: 16px;
+            transition: all 0.25s ease;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
         }
 
         .card:hover {
-            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
-            transform: translateY(-5px);
+            box-shadow: 0 20px 38px rgba(59, 78, 125, 0.12);
+            transform: translateY(-4px);
         }
 
         .clickable-card:hover {
-            box-shadow: 0 8px 16px 0 rgba(99, 102, 241, 0.08), 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 38px rgba(99, 102, 241, 0.16), 0 8px 14px rgba(35, 43, 71, 0.08);
             transform: translateY(-3px);
         }
 
@@ -100,7 +121,7 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            background: linear-gradient(135deg, #a8a9e7, #b5a2e0);
+            background: linear-gradient(135deg, #6d7eea, #8b5cf6);
             border: none;
             border-radius: 50%;
             width: 36px;
@@ -144,15 +165,15 @@
         }
 
         .chart-modal-content {
-            background-color: #fefefe;
+            background-color: #ffffff;
             margin: 5% auto;
-            padding: 20px;
+            padding: 24px;
             border-radius: 15px;
             width: 90%;
-            max-width: 1200px;
+            max-width: 1280px;
             height: 80%;
             position: relative;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            box-shadow: 0 14px 40px rgba(20, 30, 60, 0.25);
         }
 
         .chart-close {
@@ -179,18 +200,18 @@
             margin-top: 40px;
         }
 
-        #contributorsChart {
+        #metricsChart {
             background-color: #ffffff;
-            border-radius: 10px;
+            border-radius: 12px;
         }
     </style>
 
 </head>
 
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Zephyr Project Dashboard</h1>
-        <h2 class="text-center mb-4"></h2>
+    <div class="container page-shell">
+        <h1 class="text-center dashboard-title">Zephyr Project Dashboard</h1>
+        <h2 class="text-center dashboard-subtitle"></h2>
         <div class="row">
             <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
                 <div class="card clickable-card" id="uniqueContributorsCard">
@@ -241,24 +262,12 @@
         </div>
     </div>
 
-    <!-- Contributors Chart Modal -->
-    <div id="contributorsChartModal" class="chart-modal">
+    <div id="chartModal" class="chart-modal">
         <div class="chart-modal-content">
-            <span class="chart-close" data-modal="contributorsChartModal">&times;</span>
-            <h3 style="margin-top: 0; color: #007BFF; font-weight: bold;">Unique Contributors per Month</h3>
+            <span class="chart-close">&times;</span>
+            <h3 id="chartModalTitle" style="margin-top: 0; color: #4756cc; font-weight: bold;"></h3>
             <div class="chart-container">
-                <canvas id="contributorsChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Boards Chart Modal -->
-    <div id="boardsChartModal" class="chart-modal">
-        <div class="chart-modal-content">
-            <span class="chart-close" data-modal="boardsChartModal">&times;</span>
-            <h3 style="margin-top: 0; color: #007BFF; font-weight: bold;">Supported Boards</h3>
-            <div class="chart-container">
-                <canvas id="boardsChart"></canvas>
+                <canvas id="metricsChart"></canvas>
             </div>
         </div>
     </div>
@@ -421,87 +430,73 @@
         }
 
         // Chart functionality
-        let contributorsChart = null;
-        let boardsChart = null;
+        let activeChart = null;
 
-        // Modal event handlers
-        $('#uniqueContributorsCard').click(function(e) {
-            $('#contributorsChartModal').show();
-            createChart('contributors');
-        });
-
-        $('#boardsCard').click(function(e) {
-            $('#boardsChartModal').show();
-            createChart('boards');
-        });
-
-        $('.chart-close').click(function() {
-            const modalId = $(this).data('modal');
-            $(`#${modalId}`).hide();
-
-            if (modalId === 'contributorsChartModal' && contributorsChart) {
-                contributorsChart.destroy();
-                contributorsChart = null;
-            } else if (modalId === 'boardsChartModal' && boardsChart) {
-                boardsChart.destroy();
-                boardsChart = null;
+        const chartConfigs = {
+            contributors: {
+                cardId: '#uniqueContributorsCard',
+                dataField: 'numberOfUniqueContributorsPastMonth',
+                title: 'Unique Contributors per Quarter Since 2018',
+                yAxisLabel: 'Number of Contributors',
+                tooltipSuffix: ' contributors',
+                aggregation: 'max'
+            },
+            boards: {
+                cardId: '#boardsCard',
+                dataField: 'boards',
+                title: 'Supported Boards per Quarter Since 2018',
+                yAxisLabel: 'Number of Boards',
+                tooltipSuffix: ' boards',
+                aggregation: 'max'
             }
+        };
+
+        function closeChartModal() {
+            $('#chartModal').hide();
+            if (activeChart) {
+                activeChart.destroy();
+                activeChart = null;
+            }
+        }
+
+        function openChartModal(type) {
+            const config = getChartConfig(type);
+            $('#chartModalTitle').text(config.title);
+            $('#chartModal').show();
+            createChart(type);
+        }
+
+        Object.entries(chartConfigs).forEach(([type, config]) => {
+            $(config.cardId).click(function () {
+                openChartModal(type);
+            });
         });
+
+        $('.chart-close').click(closeChartModal);
 
         // Close modal when clicking outside
         $(window).click(function(event) {
-            if (event.target.id === 'contributorsChartModal') {
-                $('#contributorsChartModal').hide();
-                if (contributorsChart) {
-                    contributorsChart.destroy();
-                    contributorsChart = null;
-                }
-            } else if (event.target.id === 'boardsChartModal') {
-                $('#boardsChartModal').hide();
-                if (boardsChart) {
-                    boardsChart.destroy();
-                    boardsChart = null;
-                }
+            if (event.target.id === 'chartModal') {
+                closeChartModal();
             }
         });
 
         // Close modal with Escape key
         $(document).keydown(function(event) {
-            if (event.key === 'Escape' || event.keyCode === 27) {
-                // Check if contributors modal is open
-                if ($('#contributorsChartModal').is(':visible')) {
-                    $('#contributorsChartModal').hide();
-                    if (contributorsChart) {
-                        contributorsChart.destroy();
-                        contributorsChart = null;
-                    }
-                }
-                // Check if boards modal is open
-                else if ($('#boardsChartModal').is(':visible')) {
-                    $('#boardsChartModal').hide();
-                    if (boardsChart) {
-                        boardsChart.destroy();
-                        boardsChart = null;
-                    }
-                }
+            if ((event.key === 'Escape' || event.keyCode === 27) && $('#chartModal').is(':visible')) {
+                closeChartModal();
             }
         });
 
         function createChart(type) {
             const config = getChartConfig(type);
 
-            if (type === 'contributors') {
-                if (contributorsChart) {
-                    contributorsChart.destroy();
-                }
-            } else if (type === 'boards') {
-                if (boardsChart) {
-                    boardsChart.destroy();
-                }
+            if (activeChart) {
+                activeChart.destroy();
             }
 
             const chartData = processDataForChart(config.dataField, config.aggregation);
-            const ctx = document.getElementById(config.canvasId).getContext('2d');
+            const ctx = document.getElementById('metricsChart').getContext('2d');
 
             // Generate distinct colors for each RTOS
             const colors = [
@@ -539,7 +534,7 @@
                 };
             });
 
-            const chart = new Chart(ctx, {
+            activeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: chartData.quarters,
@@ -665,38 +660,14 @@
                     }
                 }
             });
-
-            // Assign chart to appropriate variable
-            if (type === 'contributors') {
-                contributorsChart = chart;
-            } else if (type === 'boards') {
-                boardsChart = chart;
-            }
         }
 
         function getChartConfig(type) {
-            switch(type) {
-                case 'contributors':
-                    return {
-                        canvasId: 'contributorsChart',
-                        dataField: 'numberOfUniqueContributorsPastMonth',
-                        title: 'Contributors Per Quarter Since 2018',
-                        yAxisLabel: 'Number of Contributors',
-                        tooltipSuffix: ' contributors',
-                        aggregation: 'max'
-                    };
-                case 'boards':
-                    return {
-                        canvasId: 'boardsChart',
-                        dataField: 'boards',
-                        title: 'Supported Boards Per Quarter Since 2018',
-                        yAxisLabel: 'Number of Boards',
-                        tooltipSuffix: ' boards',
-                        aggregation: 'max'
-                    };
-                default:
-                    throw new Error(`Unknown chart type: ${type}`);
+            const config = chartConfigs[type];
+            if (!config) {
+                throw new Error(`Unknown chart type: ${type}`);
             }
+            return config;
         }
 
         function processDataForChart(dataField, aggregation) {
