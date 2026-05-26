@@ -314,7 +314,7 @@
                 <div class="row g-4 align-items-end">
                     <div class="col-lg-7">
                         <div class="eyebrow mb-3">Repository metrics</div>
-                        <h1 class="hero-title">Zephyr project dashboard</h1>
+                        <h1 class="hero-title">Zephyr Project Dashboard</h1>
                         <p class="hero-subtitle lead mb-4">A cleaner snapshot of the Zephyr ecosystem with reusable metric cards and trend charts for every headline number.</p>
                         <div class="d-flex flex-wrap gap-2">
                             <div class="hero-badge">📈 Live repo trends</div>
@@ -897,7 +897,13 @@
 
         function formatComparisonPercent(previous, delta) {
             if (previous === 0) {
-                return delta > 0 ? 'New baseline from 0' : 'No change from 0';
+                if (delta > 0) {
+                    return 'New baseline from 0';
+                }
+                if (delta < 0) {
+                    return 'Change from 0 baseline';
+                }
+                return 'No change from 0';
             }
             return formatSignedPercent((delta / previous) * 100);
         }
@@ -924,10 +930,15 @@
         }
 
         function getMonthEndKey(dateValue, offset) {
-            const targetYear = dateValue.getUTCFullYear() + Math.floor((dateValue.getUTCMonth() + offset) / 12);
-            const targetMonth = ((dateValue.getUTCMonth() + offset) % 12 + 12) % 12;
+            const totalMonths = dateValue.getUTCMonth() + offset;
+            const targetYear = dateValue.getUTCFullYear() + Math.floor(totalMonths / 12);
+            const targetMonth = normalizeMonthIndex(totalMonths);
             const monthEnd = new Date(Date.UTC(targetYear, targetMonth + 1, 0));
             return monthEnd.toISOString().slice(0, 10);
+        }
+
+        function normalizeMonthIndex(totalMonths) {
+            return ((totalMonths % 12) + 12) % 12;
         }
 
         function toDate(dateString) {
