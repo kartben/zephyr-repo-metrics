@@ -5,708 +5,887 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zephyr Project Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/zephyr/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-
     <style>
+        :root {
+            color-scheme: light;
+            --dashboard-bg: #eef3ff;
+            --panel-bg: rgba(255, 255, 255, 0.88);
+            --panel-border: rgba(148, 163, 184, 0.18);
+            --panel-shadow: 0 24px 70px rgba(30, 41, 59, 0.12);
+            --text-strong: #172554;
+            --text-muted: #475569;
+            --accent: #6d5efc;
+            --accent-soft: rgba(109, 94, 252, 0.14);
+            --success: #0f9d58;
+            --success-soft: rgba(15, 157, 88, 0.12);
+            --danger: #d93025;
+            --danger-soft: rgba(217, 48, 37, 0.12);
+            --neutral: #64748b;
+            --neutral-soft: rgba(100, 116, 139, 0.12);
+        }
+
         body {
-            background-color: #f5f5f5;
-            font-family: 'Open Sans', 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(125, 132, 255, 0.22), transparent 32%),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 22%),
+                linear-gradient(180deg, #f7f9ff 0%, var(--dashboard-bg) 52%, #f8fafc 100%);
+            color: var(--text-strong);
+            font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-        .card {
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-            border: none;
-            border-radius: 10px;
-            transition: 0.3s;
+        .dashboard-shell {
+            padding: 3rem 0 4rem;
         }
 
-        .card:hover {
-            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
-            transform: translateY(-5px);
+        .surface {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 1.75rem;
+            box-shadow: var(--panel-shadow);
+            backdrop-filter: blur(20px);
         }
 
-        .clickable-card:hover {
-            box-shadow: 0 8px 16px 0 rgba(99, 102, 241, 0.08), 0 4px 8px 0 rgba(0, 0, 0, 0.1);
-            transform: translateY(-3px);
-        }
-
-        .card-title {
-            font-weight: bold;
-            color: #007BFF;
-            font-size: 1rem;
-        }
-
-        .card-text {
-            font-size: 14px;
-        }
-
-        .current-value {
-            font-size: 4em;
-            font-weight: 900;
-        }
-
-        .light-green {
-            color: #4caf50;
-        }
-
-        .dark-green {
-            color: #087f23;
-        }
-
-        .light-red {
-            color: #f44336;
-        }
-
-        .dark-red {
-            color: #b71c1c;
-        }
-
-        footer {
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .badge.light-green {
-            background-color: #c8e6c9;
-            color: #087f23;
-        }
-        .badge.dark-green {
-            background-color: #087f23;
-            color: #fff;
-        }
-        .badge.light-red {
-            background-color: #ffcdd2;
-            color: #b71c1c;
-        }
-        .badge.dark-red {
-            background-color: #b71c1c;
-            color: #fff;
-        }
-
-        .clickable-card {
-            cursor: pointer;
+        .hero-card {
             position: relative;
             overflow: hidden;
+            padding: 2.5rem;
         }
 
-
-
-        .chart-button {
+        .hero-card::before,
+        .hero-card::after {
+            content: "";
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: linear-gradient(135deg, #a8a9e7, #b5a2e0);
-            border: none;
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            z-index: 0;
+        }
+
+        .hero-card::before {
+            width: 22rem;
+            height: 22rem;
+            right: -8rem;
+            top: -10rem;
+            background: radial-gradient(circle, rgba(109, 94, 252, 0.28) 0%, rgba(109, 94, 252, 0) 70%);
+        }
+
+        .hero-card::after {
+            width: 16rem;
+            height: 16rem;
+            left: -5rem;
+            bottom: -8rem;
+            background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0) 72%);
+        }
+
+        .hero-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.875rem;
+            border-radius: 999px;
+            background: rgba(23, 37, 84, 0.06);
+            color: #4338ca;
+            font-size: 0.875rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 4vw, 3.35rem);
+            line-height: 1.05;
+            margin: 1rem 0 0.75rem;
+            font-weight: 800;
+            max-width: 10ch;
+        }
+
+        .hero-copy {
+            max-width: 42rem;
+            font-size: 1.05rem;
+            color: var(--text-muted);
+        }
+
+        .hero-meta {
             display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .hero-meta .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.9rem;
+            padding: 0.7rem 0.95rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-strong);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .hero-status {
+            margin-top: 1.25rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .section-heading p {
+            margin: 0.4rem 0 0;
+            color: var(--text-muted);
+        }
+
+        .section-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 0.95rem;
+            border-radius: 999px;
+            background: rgba(109, 94, 252, 0.1);
+            color: #4338ca;
+            font-weight: 600;
+            font-size: 0.92rem;
+            white-space: nowrap;
+        }
+
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+            transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 24px 55px rgba(15, 23, 42, 0.12);
+            border-color: rgba(109, 94, 252, 0.24);
+        }
+
+        .metric-card::before {
+            content: "";
+            position: absolute;
+            inset: auto -2rem -5rem auto;
+            width: 11rem;
+            height: 11rem;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--metric-accent-soft) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .metric-card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 1rem;
+        }
+
+        .metric-icon {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            font-size: 14px;
-            color: white;
-            opacity: 0.8;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            background: var(--metric-accent-soft);
+            color: var(--metric-accent);
+            font-size: 1.2rem;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
         }
 
-        .chart-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-            opacity: 1;
+        .metric-kicker {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 0.35rem;
         }
 
-        .chart-button:active {
-            transform: scale(0.95);
+        .metric-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
         }
 
-        .clickable-card .card-title {
-            padding-right: 60px;
+        .metric-description {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            max-width: 28ch;
         }
 
+        .metric-chart-button {
+            width: 2.75rem;
+            height: 2.75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(109, 94, 252, 0.14);
+            border-radius: 0.95rem;
+            background: rgba(255, 255, 255, 0.92);
+            color: var(--metric-accent);
+            box-shadow: 0 10px 24px rgba(109, 94, 252, 0.12);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
 
+        .metric-chart-button:hover,
+        .metric-chart-button:focus-visible {
+            transform: translateY(-2px);
+            background: var(--metric-accent-soft);
+            box-shadow: 0 14px 28px rgba(109, 94, 252, 0.18);
+            outline: none;
+        }
+
+        .metric-value {
+            font-size: clamp(2.6rem, 4vw, 3.5rem);
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin-bottom: 0.65rem;
+        }
+
+        .metric-caption {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .trend-grid {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .trend-chip {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid transparent;
+            background: #f8fafc;
+        }
+
+        .trend-chip__label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.35rem;
+        }
+
+        .trend-chip__value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .trend-chip__meta {
+            margin-top: 0.2rem;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .trend-chip--up {
+            background: var(--success-soft);
+            border-color: rgba(15, 157, 88, 0.14);
+        }
+
+        .trend-chip--up .trend-chip__value,
+        .trend-chip--up .trend-chip__icon {
+            color: var(--success);
+        }
+
+        .trend-chip--down {
+            background: var(--danger-soft);
+            border-color: rgba(217, 48, 37, 0.16);
+        }
+
+        .trend-chip--down .trend-chip__value,
+        .trend-chip--down .trend-chip__icon {
+            color: var(--danger);
+        }
+
+        .trend-chip--flat,
+        .trend-chip--empty {
+            background: var(--neutral-soft);
+            border-color: rgba(100, 116, 139, 0.14);
+        }
+
+        .trend-chip--flat .trend-chip__value,
+        .trend-chip--flat .trend-chip__icon,
+        .trend-chip--empty .trend-chip__value,
+        .trend-chip--empty .trend-chip__icon {
+            color: var(--neutral);
+        }
+
+        .trend-chip__icon {
+            font-size: 1rem;
+            line-height: 1;
+            margin-top: 0.1rem;
+        }
 
         .chart-modal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            inset: 0;
+            padding: 1.25rem;
+            background: rgba(15, 23, 42, 0.56);
+            backdrop-filter: blur(12px);
+            z-index: 1050;
         }
 
-        .chart-modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 1200px;
-            height: 80%;
+        .chart-modal.is-open {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-modal__dialog {
+            width: min(1100px, 100%);
+            max-height: min(90vh, 52rem);
+            overflow: hidden;
+            padding: 1.5rem;
+            border-radius: 1.75rem;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            box-shadow: 0 34px 80px rgba(15, 23, 42, 0.28);
+        }
+
+        .chart-modal__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-modal__title {
+            font-size: clamp(1.35rem, 3vw, 1.8rem);
+            font-weight: 800;
+            margin: 0.45rem 0 0.35rem;
+        }
+
+        .chart-modal__subtitle {
+            margin: 0;
+            color: var(--text-muted);
+            max-width: 50rem;
+        }
+
+        .chart-modal__close {
+            width: 2.75rem;
+            height: 2.75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 0.95rem;
+            background: rgba(15, 23, 42, 0.06);
+            color: var(--text-strong);
+            font-size: 1.35rem;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .chart-modal__close:hover,
+        .chart-modal__close:focus-visible {
+            background: rgba(15, 23, 42, 0.12);
+            transform: translateY(-1px);
+            outline: none;
+        }
+
+        .chart-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .chart-meta .badge {
+            padding: 0.68rem 0.95rem;
+            border-radius: 999px;
+            background: rgba(109, 94, 252, 0.1);
+            color: #4338ca;
+            font-size: 0.9rem;
+            border: 1px solid rgba(109, 94, 252, 0.12);
+        }
+
+        .chart-panel {
             position: relative;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            height: min(60vh, 34rem);
+            padding: 1rem;
+            border-radius: 1.35rem;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(243, 246, 255, 0.96) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.14);
         }
 
-        .chart-close {
-            color: #aaa;
-            float: right;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            position: absolute;
-            right: 20px;
-            top: 15px;
-            z-index: 1001;
+        .dashboard-alert {
+            padding: 1rem 1.1rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(217, 48, 37, 0.16);
+            background: rgba(217, 48, 37, 0.08);
+            color: #991b1b;
+            font-weight: 600;
         }
 
-        .chart-close:hover,
-        .chart-close:focus {
-            color: #000;
-            text-decoration: none;
+        footer {
+            margin-top: 2rem;
+            color: var(--text-muted);
         }
 
-        .chart-container {
-            position: relative;
-            height: calc(100% - 60px);
-            margin-top: 40px;
+        footer a {
+            color: inherit;
+            font-weight: 600;
         }
 
-        #contributorsChart {
-            background-color: #ffffff;
-            border-radius: 10px;
+        @media (max-width: 991.98px) {
+            .hero-card {
+                padding: 2rem;
+            }
+
+            .section-heading {
+                align-items: start;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .dashboard-shell {
+                padding-top: 1.5rem;
+            }
+
+            .hero-card,
+            .chart-modal__dialog {
+                padding: 1.25rem;
+            }
+
+            .metric-card {
+                padding: 1.25rem;
+            }
+
+            .chart-modal {
+                padding: 0.75rem;
+            }
+
+            .chart-panel {
+                height: min(62vh, 26rem);
+                padding: 0.6rem;
+            }
         }
     </style>
-
 </head>
 
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Zephyr Project Dashboard</h1>
-        <h2 class="text-center mb-4"></h2>
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card clickable-card" id="uniqueContributorsCard">
-                    <div class="card-body">
-                        <h5 class="card-title">Contributors (past month)</h5>
-                        <p class="card-text">...</p>
-                        <button class="chart-button" title="View Contributors Chart">
-                            📊
-                        </button>
+    <main class="dashboard-shell">
+        <div class="container">
+            <section class="surface hero-card">
+                <span class="eyebrow"><i class="bi bi-stars"></i> Project health snapshot</span>
+                <div class="row g-4 align-items-center mt-1">
+                    <div class="col-xl-7">
+                        <h1 class="hero-title">Zephyr project dashboard</h1>
+                        <p class="hero-copy">
+                            A cleaner view of the Zephyr ecosystem with polished summary cards, richer trend context,
+                            and reusable charts for every key metric.
+                        </p>
+                        <div class="hero-meta">
+                            <span class="badge"><i class="bi bi-calendar3"></i> Monthly rollups</span>
+                            <span class="badge"><i class="bi bi-bar-chart-line"></i> Quarterly comparisons since 2019</span>
+                            <span class="badge"><i class="bi bi-github"></i> Powered by repository stats data</span>
+                        </div>
+                        <div id="dashboardStatus" class="hero-status">Loading dashboard data…</div>
+                    </div>
+                    <div class="col-xl-5">
+                        <div class="surface p-4 h-100">
+                            <div class="metric-kicker">What changed</div>
+                            <h2 class="h4 mb-3">Faster to scan, easier to compare</h2>
+                            <div class="d-grid gap-3 text-body-secondary">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <span class="metric-icon mb-0 flex-shrink-0"><i class="bi bi-grid-1x2-fill"></i></span>
+                                    <div>Cards now emphasize the latest value first, with month-over-month and year-over-year movement grouped together.</div>
+                                </div>
+                                <div class="d-flex gap-3 align-items-start">
+                                    <span class="metric-icon mb-0 flex-shrink-0"><i class="bi bi-diagram-3-fill"></i></span>
+                                    <div>Every metric uses the same chart pipeline, so comparisons stay consistent across contributors, maintainers, drivers, samples, and boards.</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </section>
+
+            <section class="mt-4">
+                <div class="section-heading">
+                    <div>
+                        <h2>Core metrics</h2>
+                        <p>Click any chart button to inspect the shared quarterly comparison view for that metric.</p>
+                    </div>
+                    <div class="section-pill"><i class="bi bi-magic"></i> Bootswatch Zephyr theme + custom dashboard polish</div>
+                </div>
+                <div id="dashboardAlert" class="dashboard-alert d-none" role="alert"></div>
+                <div id="dashboardMetrics" class="row g-4"></div>
+            </section>
+
+            <footer class="text-center">
+                <p class="mb-0">
+                    Data source:
+                    <a href="https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv" target="_blank" rel="noreferrer">statistics/stats/all.csv</a>
+                </p>
+            </footer>
+        </div>
+    </main>
+
+    <div id="chartModal" class="chart-modal" role="dialog" aria-modal="true" aria-labelledby="chartModalTitle">
+        <div class="chart-modal__dialog">
+            <div class="chart-modal__header">
+                <div>
+                    <span id="chartModalEyebrow" class="eyebrow"><i class="bi bi-graph-up-arrow"></i> Trend view</span>
+                    <h2 id="chartModalTitle" class="chart-modal__title">Metric history</h2>
+                    <p id="chartModalSubtitle" class="chart-modal__subtitle">Quarterly comparison across tracked projects.</p>
+                </div>
+                <button id="chartModalClose" class="chart-modal__close" type="button" aria-label="Close chart">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card" id="maintainersCard">
-                    <div class="card-body">
-                        <h5 class="card-title">Maintainers</h5>
-                        <p class="card-text">...</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card" id="driversCard">
-                    <div class="card-body">
-                        <h5 class="card-title">Sensor Drivers</h5>
-                        <p class="card-text">...</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card" id="samplesCard">
-                    <div class="card-body">
-                        <h5 class="card-title">Samples</h5>
-                        <p class="card-text">...</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card clickable-card" id="boardsCard">
-                    <div class="card-body">
-                        <h5 class="card-title">Boards</h5>
-                        <p class="card-text">...</p>
-                        <button class="chart-button" title="View Boards Chart">
-                            📊
-                        </button>
-                    </div>
-                </div>
+            <div id="chartMeta" class="chart-meta"></div>
+            <div class="chart-panel">
+                <canvas id="metricChart"></canvas>
             </div>
         </div>
     </div>
-
-    <!-- Contributors Chart Modal -->
-    <div id="contributorsChartModal" class="chart-modal">
-        <div class="chart-modal-content">
-            <span class="chart-close" data-modal="contributorsChartModal">&times;</span>
-            <h3 style="margin-top: 0; color: #007BFF; font-weight: bold;">Unique Contributors per Month</h3>
-            <div class="chart-container">
-                <canvas id="contributorsChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Boards Chart Modal -->
-    <div id="boardsChartModal" class="chart-modal">
-        <div class="chart-modal-content">
-            <span class="chart-close" data-modal="boardsChartModal">&times;</span>
-            <h3 style="margin-top: 0; color: #007BFF; font-weight: bold;">Supported Boards</h3>
-            <div class="chart-container">
-                <canvas id="boardsChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <footer class="text-center mt-5">
-        <p>
-            Data source: <a
-                href="https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv"
-                target="_blank">CSV file</a>
-        </p>
-    </footer>
-
 
     <script>
-        // Global variable to store all CSV data for chart functionality
-        let allData = [];
+        const DASHBOARD_DATA_URL = 'https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv';
+        const REPO_OWNER = 'kartben';
+        const REPO_NAME = 'zephyr-repo-metrics';
+        const STATS_BRANCH = 'statistics';
+        const QUARTERLY_START = '2018-12-31';
 
-        // Fetch CSV data and parse it
-        const url = "https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv";
-        Papa.parse(url, {
-            download: true,
-            header: true,
-            complete: function (results) {
-                allData = results.data;
-                processData(results.data);
+        const METRIC_CONFIG = [
+            {
+                id: 'contributors',
+                key: 'numberOfUniqueContributors',
+                csvField: 'numberOfUniqueContributorsPastMonth',
+                label: 'Contributors',
+                kicker: 'Community activity',
+                description: 'Active contributors counted over the trailing month.',
+                icon: 'bi-people-fill',
+                accent: '#6d5efc',
+                accentSoft: 'rgba(109, 94, 252, 0.14)',
+                chartTitle: 'Contributors per quarter',
+                chartSubtitle: 'Quarterly max of active contributors measured over the prior month.',
+                yAxisLabel: 'Contributors',
+                tooltipSuffix: ' contributors',
+                aggregation: 'max',
+                metricSummary: 'Past month activity'
+            },
+            {
+                id: 'maintainers',
+                key: 'maintainers',
+                csvField: 'maintainers',
+                label: 'Maintainers',
+                kicker: 'Project stewardship',
+                description: 'Maintainers responsible for keeping the project moving.',
+                icon: 'bi-person-badge-fill',
+                accent: '#2563eb',
+                accentSoft: 'rgba(37, 99, 235, 0.14)',
+                chartTitle: 'Maintainers per quarter',
+                chartSubtitle: 'Quarterly max of recorded maintainers across tracked projects.',
+                yAxisLabel: 'Maintainers',
+                tooltipSuffix: ' maintainers',
+                aggregation: 'max',
+                metricSummary: 'Current maintainership footprint'
+            },
+            {
+                id: 'drivers',
+                key: 'drivers',
+                csvField: 'drivers',
+                label: 'Sensor drivers',
+                kicker: 'Hardware enablement',
+                description: 'Sensor driver coverage available in the Zephyr tree.',
+                icon: 'bi-cpu-fill',
+                accent: '#0891b2',
+                accentSoft: 'rgba(8, 145, 178, 0.14)',
+                chartTitle: 'Sensor drivers per quarter',
+                chartSubtitle: 'Quarterly max of sensor driver counts across tracked projects.',
+                yAxisLabel: 'Sensor drivers',
+                tooltipSuffix: ' drivers',
+                aggregation: 'max',
+                metricSummary: 'Driver catalog size'
+            },
+            {
+                id: 'samples',
+                key: 'samples',
+                csvField: 'samples',
+                label: 'Samples',
+                kicker: 'Developer experience',
+                description: 'Sample applications available to users and contributors.',
+                icon: 'bi-journal-code',
+                accent: '#ea580c',
+                accentSoft: 'rgba(234, 88, 12, 0.14)',
+                chartTitle: 'Samples per quarter',
+                chartSubtitle: 'Quarterly max of sample counts across tracked projects.',
+                yAxisLabel: 'Samples',
+                tooltipSuffix: ' samples',
+                aggregation: 'max',
+                metricSummary: 'Sample app coverage'
+            },
+            {
+                id: 'boards',
+                key: 'boards',
+                csvField: 'boards',
+                label: 'Boards',
+                kicker: 'Platform support',
+                description: 'Supported boards represented in the repository statistics.',
+                icon: 'bi-motherboard-fill',
+                accent: '#059669',
+                accentSoft: 'rgba(5, 150, 105, 0.14)',
+                chartTitle: 'Supported boards per quarter',
+                chartSubtitle: 'Quarterly max of supported board counts across tracked projects.',
+                yAxisLabel: 'Boards',
+                tooltipSuffix: ' boards',
+                aggregation: 'max',
+                metricSummary: 'Breadth of board support'
             }
-        });
+        ];
 
+        const METRIC_MAP = Object.fromEntries(METRIC_CONFIG.map(metric => [metric.id, metric]));
+        const CHART_COLORS = ['#ef4444', '#06b6d4', '#f59e0b', '#10b981', '#ec4899', '#6366f1', '#84cc16', '#f97316', '#0ea5e9', '#8b5cf6'];
+        const numberFormatter = new Intl.NumberFormat('en-US');
+
+        let allData = [];
+        let activeChart = null;
+
+        const dashboardMetrics = document.getElementById('dashboardMetrics');
+        const dashboardStatus = document.getElementById('dashboardStatus');
+        const dashboardAlert = document.getElementById('dashboardAlert');
+        const chartModal = document.getElementById('chartModal');
+        const chartModalTitle = document.getElementById('chartModalTitle');
+        const chartModalSubtitle = document.getElementById('chartModalSubtitle');
+        const chartModalEyebrow = document.getElementById('chartModalEyebrow');
+        const chartMeta = document.getElementById('chartMeta');
+        const metricChartCanvas = document.getElementById('metricChart');
+
+        function renderMetricCards() {
+            dashboardMetrics.innerHTML = METRIC_CONFIG.map(metric => `
+                <div class="col-12 col-md-6 col-xl-4">
+                    <article class="metric-card" style="--metric-accent:${metric.accent}; --metric-accent-soft:${metric.accentSoft};">
+                        <div class="metric-card__header">
+                            <div>
+                                <span class="metric-icon"><i class="bi ${metric.icon}"></i></span>
+                                <div class="metric-kicker">${metric.kicker}</div>
+                                <h2 class="metric-title">${metric.label}</h2>
+                                <p class="metric-description">${metric.description}</p>
+                            </div>
+                            <button class="metric-chart-button" type="button" data-open-chart="${metric.id}" aria-label="Open ${metric.label} chart" title="Open ${metric.label} chart">
+                                <i class="bi bi-graph-up-arrow"></i>
+                            </button>
+                        </div>
+                        <div id="${metric.id}-value" class="metric-value">—</div>
+                        <div class="metric-caption"><i class="bi bi-clock-history"></i>${metric.metricSummary}</div>
+                        <div id="${metric.id}-trends" class="trend-grid"></div>
+                    </article>
+                </div>
+            `).join('');
+        }
+
+        function showAlert(message) {
+            dashboardAlert.textContent = message;
+            dashboardAlert.classList.remove('d-none');
+        }
+
+        function hideAlert() {
+            dashboardAlert.textContent = '';
+            dashboardAlert.classList.add('d-none');
+        }
+
+        function fetchCsvData() {
+            return new Promise((resolve, reject) => {
+                Papa.parse(DASHBOARD_DATA_URL, {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: results => resolve(results.data),
+                    error: error => reject(error)
+                });
+            });
+        }
 
         async function getLatestCommitDate(repoOwner, repoName, branchName) {
-        const url = `https://api.github.com/repos/${repoOwner}/${repoName}/commits?sha=${branchName}&per_page=1`;
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-            'Accept': 'application/vnd.github+json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const commits = await response.json();
-        const latestCommitDate = commits[0].commit.committer.date;
-        return latestCommitDate;
-        }
-
-        const repoOwner = 'kartben';
-        const repoName = 'zephyr-repo-metrics';
-        const branchName = 'statistics';
-
-        function updateTitleWithDate(latestDate) {
-            const formattedDate = moment(latestDate).format('MMMM DD, YYYY [at] HH:mm:ss');
-            $('h2').html(`Last Update: ${formattedDate}`);
-        }
-
-        getLatestCommitDate(repoOwner, repoName, branchName)
-            .then(date => {
-                updateTitleWithDate(date);
-            })
-            .catch(error => {
-                console.error('Error fetching commit date:', error);
+            const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/commits?sha=${branchName}&per_page=1`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/vnd.github+json'
+                }
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+
+            const commits = await response.json();
+            return commits?.[0]?.commit?.committer?.date;
+        }
+
+        function buildZephyrStats(data) {
+            const zephyrRows = data.filter(row => row.project === 'Zephyr' && row.date).sort((a, b) => new Date(a.date) - new Date(b.date));
+            const stats = {};
+
+            zephyrRows.forEach(row => {
+                const dateKey = moment(row.date).format('YYYY-MM-DD');
+                stats[dateKey] = {
+                    numberOfUniqueContributors: parseMetricValue(row.numberOfUniqueContributorsPastMonth),
+                    maintainers: parseMetricValue(row.maintainers),
+                    drivers: parseMetricValue(row.drivers),
+                    samples: parseMetricValue(row.samples),
+                    boards: parseMetricValue(row.boards)
+                };
+            });
+
+            return stats;
+        }
+
+        function parseMetricValue(value) {
+            const parsed = Number.parseInt(value, 10);
+            return Number.isFinite(parsed) ? parsed : null;
+        }
+
+        function formatSignedNumber(value) {
+            const sign = value > 0 ? '+' : value < 0 ? '−' : '±';
+            return `${sign}${numberFormatter.format(Math.abs(value))}`;
+        }
+
+        function formatPercentChange(current, previous) {
+            if (previous === null || previous === undefined || previous === 0) {
+                return 'No baseline';
+            }
+
+            const percent = ((current - previous) / previous) * 100;
+            const sign = percent > 0 ? '+' : percent < 0 ? '−' : '±';
+            return `${sign}${Math.abs(percent).toFixed(1)}%`;
+        }
+
+        function renderTrendChip(label, current, previous) {
+            if (current === null || current === undefined) {
+                return `
+                    <div class="trend-chip trend-chip--empty">
+                        <div>
+                            <span class="trend-chip__label">${label}</span>
+                            <div class="trend-chip__value">Unavailable</div>
+                            <div class="trend-chip__meta">The latest snapshot did not include this metric.</div>
+                        </div>
+                        <i class="bi bi-dash-circle trend-chip__icon"></i>
+                    </div>
+                `;
+            }
+
+            if (previous === null || previous === undefined) {
+                return `
+                    <div class="trend-chip trend-chip--empty">
+                        <div>
+                            <span class="trend-chip__label">${label}</span>
+                            <div class="trend-chip__value">No baseline</div>
+                            <div class="trend-chip__meta">More historical data is needed for this comparison.</div>
+                        </div>
+                        <i class="bi bi-dash-circle trend-chip__icon"></i>
+                    </div>
+                `;
+            }
+
+            const delta = current - previous;
+            const trendClass = delta > 0 ? 'trend-chip--up' : delta < 0 ? 'trend-chip--down' : 'trend-chip--flat';
+            const icon = delta > 0 ? 'bi-arrow-up-right-circle-fill' : delta < 0 ? 'bi-arrow-down-right-circle-fill' : 'bi-dash-circle-fill';
+            const detail = previous === 0
+                ? 'Started from 0'
+                : `${formatPercentChange(current, previous)} vs ${numberFormatter.format(previous)}`;
+
+            return `
+                <div class="trend-chip ${trendClass}">
+                    <div>
+                        <span class="trend-chip__label">${label}</span>
+                        <div class="trend-chip__value">${formatSignedNumber(delta)}</div>
+                        <div class="trend-chip__meta">${detail}</div>
+                    </div>
+                    <i class="bi ${icon} trend-chip__icon"></i>
+                </div>
+            `;
+        }
+
+        function updateMetricCard(metric, snapshot) {
+            const valueElement = document.getElementById(`${metric.id}-value`);
+            const trendElement = document.getElementById(`${metric.id}-trends`);
+
+            valueElement.textContent = snapshot.current === null ? '—' : numberFormatter.format(snapshot.current);
+            trendElement.innerHTML = [
+                renderTrendChip('Month over month', snapshot.current, snapshot.previousMonth),
+                renderTrendChip('Year over year', snapshot.current, snapshot.previousYear)
+            ].join('');
+        }
 
         function processData(data) {
-            let zephyrData = data.filter(row => row.project === 'Zephyr');
-            let zephyrStats = {};
+            const zephyrStats = buildZephyrStats(data);
+            const dateKeys = Object.keys(zephyrStats).sort();
 
-            zephyrData.forEach(row => {
-                const dateKey = moment(row.date).format('YYYY-MM-DD');
-                if (!zephyrStats[dateKey]) {
-                    zephyrStats[dateKey] = {
-                        numberOfUniqueContributors: 0,
-                        drivers: 0,
-                        samples: 0,
-                        boards: 0
-                    };
-                }
-                zephyrStats[dateKey].numberOfUniqueContributors = parseInt(row.numberOfUniqueContributorsPastMonth);
-                zephyrStats[dateKey].maintainers = parseInt(row.maintainers);
-                zephyrStats[dateKey].drivers = parseInt(row.drivers);
-                zephyrStats[dateKey].samples = parseInt(row.samples);
-                zephyrStats[dateKey].boards = parseInt(row.boards);
-            });
-
-            function calculatePercentageChange(current, previous) {
-                return ((current - previous) / previous) * 100;
+            if (!dateKeys.length) {
+                showAlert('No Zephyr data was available in the statistics feed.');
+                return;
             }
 
-            function generateCardText(current, prevMonth, prevYear) {
-                const getSignAndColorClass = (value) => {
-                    const sign = value >= 0 ? '+' : '';
-                    const colorClass = Math.abs(value) >= 10 ? 'dark' : 'light';
-                    return {
-                        sign,
-                        colorClass: `${colorClass}-${value >= 0 ? 'green' : 'red'}`
-                    };
-                };
+            hideAlert();
 
-                const monthAbs = current - (prevMonth ?? 0);
-                const yearAbs = current - (prevYear ?? 0);
-                const monthChange = prevMonth ? ((current - prevMonth) / prevMonth) * 100 : 0;
-                const yearChange = prevYear ? ((current - prevYear) / prevYear) * 100 : 0;
-
-                const monthSignAndColor = getSignAndColorClass(monthAbs);
-                const yearSignAndColor = getSignAndColorClass(yearAbs);
-
-                return `
-        <span class="current-value mb-2 d-block">${current}</span>
-        <div class="mb-1">
-            <span class="fw-bold">Month-over-Month:</span>
-            <span class="badge ${monthSignAndColor.colorClass} me-1" style="font-size:1em;">${monthSignAndColor.sign}${monthAbs}</span>
-            <span class="text-muted small">(${monthChange >= 0 ? '+' : ''}${monthChange.toFixed(2)}%)</span>
-        </div>
-        <div>
-            <span class="fw-bold">Year-over-Year:</span>
-            <span class="badge ${yearSignAndColor.colorClass} me-1" style="font-size:1em;">${yearSignAndColor.sign}${yearAbs}</span>
-            <span class="text-muted small">(${yearChange >= 0 ? '+' : ''}${yearChange.toFixed(2)}%)</span>
-        </div>
-    `;
-
-            }
-
-            const dateKeys = Object.keys(zephyrStats);
             const latestKey = dateKeys[dateKeys.length - 1];
             const latestData = zephyrStats[latestKey];
-            const prevMonthKey = moment(latestKey).subtract(1, 'month').format('YYYY-MM-DD');
-            const prevYearKey = moment(latestKey).subtract(12, 'month').format('YYYY-MM-DD');
+            const previousMonthKey = moment(latestKey).subtract(1, 'month').format('YYYY-MM-DD');
+            const previousYearKey = moment(latestKey).subtract(12, 'month').format('YYYY-MM-DD');
+            const previousMonth = zephyrStats[previousMonthKey] || {};
+            const previousYear = zephyrStats[previousYearKey] || {};
 
-            // Update dashboard cards
-            $('#uniqueContributorsCard .card-text').html(generateCardText(
-                latestData.numberOfUniqueContributors,
-                zephyrStats[prevMonthKey]?.numberOfUniqueContributors,
-                zephyrStats[prevYearKey]?.numberOfUniqueContributors
-            ));
-
-            $('#maintainersCard .card-text').html(generateCardText(
-                latestData.maintainers,
-                zephyrStats[prevMonthKey]?.maintainers,
-                zephyrStats[prevYearKey]?.maintainers
-            ));
-
-            $('#driversCard .card-text').html(generateCardText(
-                latestData.drivers,
-                zephyrStats[prevMonthKey]?.drivers,
-                zephyrStats[prevYearKey]?.drivers
-            ));
-
-            $('#samplesCard .card-text').html(generateCardText(
-                latestData.samples,
-                zephyrStats[prevMonthKey]?.samples,
-                zephyrStats[prevYearKey]?.samples
-            ));
-
-            $('#boardsCard .card-text').html(generateCardText(
-                latestData.boards,
-                zephyrStats[prevMonthKey]?.boards,
-                zephyrStats[prevYearKey]?.boards
-            ));
-        }
-
-        // Chart functionality
-        let contributorsChart = null;
-        let boardsChart = null;
-
-        // Modal event handlers
-        $('#uniqueContributorsCard').click(function(e) {
-            $('#contributorsChartModal').show();
-            createChart('contributors');
-        });
-
-        $('#boardsCard').click(function(e) {
-            $('#boardsChartModal').show();
-            createChart('boards');
-        });
-
-        $('.chart-close').click(function() {
-            const modalId = $(this).data('modal');
-            $(`#${modalId}`).hide();
-
-            if (modalId === 'contributorsChartModal' && contributorsChart) {
-                contributorsChart.destroy();
-                contributorsChart = null;
-            } else if (modalId === 'boardsChartModal' && boardsChart) {
-                boardsChart.destroy();
-                boardsChart = null;
-            }
-        });
-
-        // Close modal when clicking outside
-        $(window).click(function(event) {
-            if (event.target.id === 'contributorsChartModal') {
-                $('#contributorsChartModal').hide();
-                if (contributorsChart) {
-                    contributorsChart.destroy();
-                    contributorsChart = null;
-                }
-            } else if (event.target.id === 'boardsChartModal') {
-                $('#boardsChartModal').hide();
-                if (boardsChart) {
-                    boardsChart.destroy();
-                    boardsChart = null;
-                }
-            }
-        });
-
-        // Close modal with Escape key
-        $(document).keydown(function(event) {
-            if (event.key === 'Escape' || event.keyCode === 27) {
-                // Check if contributors modal is open
-                if ($('#contributorsChartModal').is(':visible')) {
-                    $('#contributorsChartModal').hide();
-                    if (contributorsChart) {
-                        contributorsChart.destroy();
-                        contributorsChart = null;
-                    }
-                }
-                // Check if boards modal is open
-                else if ($('#boardsChartModal').is(':visible')) {
-                    $('#boardsChartModal').hide();
-                    if (boardsChart) {
-                        boardsChart.destroy();
-                        boardsChart = null;
-                    }
-                }
-            }
-        });
-
-        function createChart(type) {
-            const config = getChartConfig(type);
-
-            if (type === 'contributors') {
-                if (contributorsChart) {
-                    contributorsChart.destroy();
-                }
-            } else if (type === 'boards') {
-                if (boardsChart) {
-                    boardsChart.destroy();
-                }
-            }
-
-            const chartData = processDataForChart(config.dataField, config.aggregation);
-            const ctx = document.getElementById(config.canvasId).getContext('2d');
-
-            // Generate distinct colors for each RTOS
-            const colors = [
-                '#8B5CF6', // Purple for Zephyr (will be overridden)
-                '#EF4444', // Red
-                '#10B981', // Green
-                '#F59E0B', // Yellow
-                '#3B82F6', // Blue
-                '#8B5A2B', // Brown
-                '#EC4899', // Pink
-                '#06B6D4', // Cyan
-                '#84CC16', // Lime
-                '#F97316'  // Orange
-            ];
-
-            const datasets = chartData.projects.map((project, index) => {
-                const isZephyr = project.toLowerCase() === 'zephyr';
-                return {
-                    label: project,
-                    data: chartData.quarters.map(quarter => {
-                        const entry = chartData.data.find(d => d.project === project && d.quarter === quarter);
-                        return entry ? entry.value : null;
-                    }),
-                    borderColor: isZephyr ? '#8B5CF6' : colors[index % colors.length],
-                    backgroundColor: isZephyr ? 'rgba(139, 92, 246, 0.1)' : `${colors[index % colors.length]}20`,
-                    borderWidth: isZephyr ? 4 : 2,
-                    tension: 0,
-                    pointRadius: isZephyr ? 6 : 4,
-                    pointHoverRadius: isZephyr ? 8 : 6,
-                    pointBackgroundColor: isZephyr ? '#8B5CF6' : colors[index % colors.length],
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    fill: false,
-                    spanGaps: true
-                };
+            METRIC_CONFIG.forEach(metric => {
+                updateMetricCard(metric, {
+                    current: latestData[metric.key],
+                    previousMonth: previousMonth[metric.key] ?? null,
+                    previousYear: previousYear[metric.key] ?? null
+                });
             });
-
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: chartData.quarters,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: false,
-                            text: config.title,
-                            font: {
-                                size: 18,
-                                weight: 'bold'
-                            },
-                            color: '#333'
-                        },
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: {
-                                    size: 12
-                                },
-                                generateLabels: function(chart) {
-                                    // Generate labels in the same order as datasets
-                                    return chart.data.datasets.map((dataset, index) => {
-                                        const isZephyr = dataset.label.toLowerCase() === 'zephyr';
-                                        return {
-                                            text: dataset.label,
-                                            fillStyle: dataset.borderColor,
-                                            strokeStyle: dataset.borderColor,
-                                            lineWidth: dataset.borderWidth,
-                                            pointStyle: 'circle',
-                                            hidden: false,
-                                            datasetIndex: index,
-                                            font: isZephyr ? { weight: 'bold', size: 14 } : { size: 12 }
-                                        };
-                                    });
-                                }
-                            }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            titleColor: '#333',
-                            bodyColor: '#666',
-                            borderColor: '#ddd',
-                            borderWidth: 1,
-                            cornerRadius: 8,
-                            displayColors: true,
-                            callbacks: {
-                                title: function(tooltipItems) {
-                                    return `Quarter: ${tooltipItems[0].label}`;
-                                },
-                                label: function(context) {
-                                    const projectName = context.dataset.label;
-                                    const value = context.parsed.y;
-                                    return `${projectName}: ${value !== null ? value + config.tooltipSuffix : 'No data'}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            display: true,
-                            title: {
-                                display: false,
-                                text: 'Quarter',
-                                font: {
-                                    weight: 'bold',
-                                    size: 14
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                font: {
-                                    size: 14
-                                }
-                            }
-                        },
-                        y: {
-                            display: true,
-                            title: {
-                                display: false,
-                                text: config.yAxisLabel,
-                                font: {
-                                    weight: 'bold',
-                                    size: 14
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            },
-                            beginAtZero: true,
-                            ticks: {
-                                font: {
-                                    size: 14
-                                }
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    },
-                    elements: {
-                        point: {
-                            hoverRadius: 8
-                        }
-                    },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeInOutQuart'
-                    }
-                }
-            });
-
-            // Assign chart to appropriate variable
-            if (type === 'contributors') {
-                contributorsChart = chart;
-            } else if (type === 'boards') {
-                boardsChart = chart;
-            }
         }
 
-        function getChartConfig(type) {
-            switch(type) {
-                case 'contributors':
-                    return {
-                        canvasId: 'contributorsChart',
-                        dataField: 'numberOfUniqueContributorsPastMonth',
-                        title: 'Contributors Per Quarter Since 2018',
-                        yAxisLabel: 'Number of Contributors',
-                        tooltipSuffix: ' contributors',
-                        aggregation: 'max'
-                    };
-                case 'boards':
-                    return {
-                        canvasId: 'boardsChart',
-                        dataField: 'boards',
-                        title: 'Supported Boards Per Quarter Since 2018',
-                        yAxisLabel: 'Number of Boards',
-                        tooltipSuffix: ' boards',
-                        aggregation: 'max'
-                    };
-                default:
-                    throw new Error(`Unknown chart type: ${type}`);
-            }
-        }
-
-        function processDataForChart(dataField, aggregation) {
-            // Filter data from 2019-01-01 onwards
+        function processDataForChart(metric) {
             const filteredData = allData.filter(row => {
                 const rowDate = moment(row.date);
-                return rowDate.isAfter('2018-12-31') && row[dataField];
+                return row.project && rowDate.isAfter(QUARTERLY_START) && row[metric.csvField];
             });
 
-            // Group by project and quarter
             const groupedData = {};
             const quartersSet = new Set();
             const projectsSet = new Set();
@@ -714,77 +893,293 @@
             filteredData.forEach(row => {
                 const quarter = moment(row.date).format('YYYY [Q]Q');
                 const project = row.project;
-                const value = parseInt(row[dataField]);
+                const value = parseMetricValue(row[metric.csvField]);
+
+                if (value === null) {
+                    return;
+                }
 
                 projectsSet.add(project);
                 quartersSet.add(quarter);
-
-                if (!groupedData[project]) {
-                    groupedData[project] = {};
-                }
-
-                // Collect all values for each quarter to calculate average
-                if (!groupedData[project][quarter]) {
-                    groupedData[project][quarter] = [];
-                }
+                groupedData[project] = groupedData[project] || {};
+                groupedData[project][quarter] = groupedData[project][quarter] || [];
                 groupedData[project][quarter].push(value);
             });
 
-            // Calculate aggregated values for each quarter
             Object.keys(groupedData).forEach(project => {
                 Object.keys(groupedData[project]).forEach(quarter => {
                     const values = groupedData[project][quarter];
-                    let aggregatedValue;
-
-                    if (aggregation === 'max') {
-                        aggregatedValue = Math.max(...values);
-                    } else if (aggregation === 'average') {
-                        aggregatedValue = values.reduce((sum, val) => sum + val, 0) / values.length;
-                        aggregatedValue = Math.round(aggregatedValue);
-                    } else {
-                        throw new Error(`Unknown aggregation method: ${aggregation}`);
+                    if (metric.aggregation === 'average') {
+                        groupedData[project][quarter] = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+                        return;
                     }
 
-                    groupedData[project][quarter] = aggregatedValue;
+                    groupedData[project][quarter] = Math.max(...values);
                 });
             });
 
-            // Sort quarters chronologically
             const quarters = Array.from(quartersSet).sort((a, b) => {
                 const [yearA, quarterA] = a.split(' Q');
                 const [yearB, quarterB] = b.split(' Q');
-                if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
-                return parseInt(quarterA) - parseInt(quarterB);
+
+                if (yearA !== yearB) {
+                    return Number.parseInt(yearA, 10) - Number.parseInt(yearB, 10);
+                }
+
+                return Number.parseInt(quarterA, 10) - Number.parseInt(quarterB, 10);
             });
 
-            // Sort projects by their score in the most recent quarter (highest first)
             const mostRecentQuarter = quarters[quarters.length - 1];
             const projects = Array.from(projectsSet).sort((a, b) => {
-                const aScore = groupedData[a] && groupedData[a][mostRecentQuarter] ? groupedData[a][mostRecentQuarter] : 0;
-                const bScore = groupedData[b] && groupedData[b][mostRecentQuarter] ? groupedData[b][mostRecentQuarter] : 0;
-                return bScore - aScore; // Sort descending (highest score first)
-            });
-
-            // Create final data structure
-            const data = [];
-            projects.forEach(project => {
-                quarters.forEach(quarter => {
-                    if (groupedData[project] && groupedData[project][quarter]) {
-                        data.push({
-                            project: project,
-                            quarter: quarter,
-                            value: groupedData[project][quarter]
-                        });
-                    }
-                });
+                const scoreA = groupedData[a]?.[mostRecentQuarter] ?? 0;
+                const scoreB = groupedData[b]?.[mostRecentQuarter] ?? 0;
+                return scoreB - scoreA;
             });
 
             return {
-                projects: projects,
-                quarters: quarters,
-                data: data
+                quarters,
+                projects,
+                data: projects.flatMap(project => quarters
+                    .filter(quarter => groupedData[project]?.[quarter] !== undefined)
+                    .map(quarter => ({
+                        project,
+                        quarter,
+                        value: groupedData[project][quarter]
+                    })))
             };
         }
+
+        function buildDatasets(metric, chartData) {
+            return chartData.projects.map((project, index) => {
+                const isZephyr = project.toLowerCase() === 'zephyr';
+                const color = isZephyr ? metric.accent : CHART_COLORS[index % CHART_COLORS.length];
+
+                return {
+                    label: project,
+                    data: chartData.quarters.map(quarter => {
+                        const entry = chartData.data.find(item => item.project === project && item.quarter === quarter);
+                        return entry ? entry.value : null;
+                    }),
+                    borderColor: color,
+                    backgroundColor: isZephyr ? `${metric.accent}22` : `${color}18`,
+                    borderWidth: isZephyr ? 4 : 2,
+                    pointRadius: isZephyr ? 4 : 2.5,
+                    pointHoverRadius: isZephyr ? 6 : 4.5,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    fill: false,
+                    tension: 0.25,
+                    spanGaps: true
+                };
+            });
+        }
+
+        function buildChartOptions(metric) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                },
+                animation: {
+                    duration: 700,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 18,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            },
+                            generateLabels(chart) {
+                                return chart.data.datasets.map((dataset, index) => ({
+                                    text: dataset.label,
+                                    fillStyle: dataset.borderColor,
+                                    strokeStyle: dataset.borderColor,
+                                    hidden: !chart.isDatasetVisible(index),
+                                    lineWidth: dataset.borderWidth,
+                                    pointStyle: 'circle',
+                                    datasetIndex: index,
+                                    font: dataset.label.toLowerCase() === 'zephyr' ? { weight: '700', size: 13 } : { size: 12 }
+                                }));
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(15, 23, 42, 0.94)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#e2e8f0',
+                        borderColor: 'rgba(148, 163, 184, 0.18)',
+                        borderWidth: 1,
+                        cornerRadius: 12,
+                        padding: 14,
+                        callbacks: {
+                            title(items) {
+                                return `Quarter: ${items[0].label}`;
+                            },
+                            label(context) {
+                                const value = context.parsed.y;
+                                return `${context.dataset.label}: ${value === null ? 'No data' : `${numberFormatter.format(value)}${metric.tooltipSuffix}`}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.16)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#475569',
+                            maxRotation: 0,
+                            autoSkipPadding: 12,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.16)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#475569',
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            },
+                            callback(value) {
+                                return numberFormatter.format(value);
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: metric.yAxisLabel,
+                            color: '#334155',
+                            font: {
+                                size: 12,
+                                weight: '700'
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        function openChart(metricId) {
+            const metric = METRIC_MAP[metricId];
+            if (!metric || !allData.length) {
+                return;
+            }
+
+            const chartData = processDataForChart(metric);
+            if (!chartData.quarters.length || !chartData.projects.length) {
+                showAlert(`No chart data is available for ${metric.label.toLowerCase()} right now.`);
+                return;
+            }
+
+            const datasets = buildDatasets(metric, chartData);
+
+            chartModalTitle.textContent = metric.chartTitle;
+            chartModalSubtitle.textContent = metric.chartSubtitle;
+            chartModalEyebrow.innerHTML = `<i class="bi ${metric.icon}"></i> ${metric.label} trend view`;
+            chartMeta.innerHTML = [
+                `<span class="badge"><i class="bi bi-collection"></i>${chartData.projects.length} tracked projects</span>`,
+                `<span class="badge"><i class="bi bi-calendar-range"></i>${chartData.quarters[0]} → ${chartData.quarters[chartData.quarters.length - 1]}</span>`,
+                `<span class="badge"><i class="bi bi-filter"></i>${metric.aggregation === 'average' ? 'Quarterly average' : 'Quarterly max'}</span>`
+            ].join('');
+
+            if (activeChart) {
+                activeChart.destroy();
+            }
+
+            activeChart = new Chart(metricChartCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartData.quarters,
+                    datasets
+                },
+                options: buildChartOptions(metric)
+            });
+
+            chartModal.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeChart() {
+            chartModal.classList.remove('is-open');
+            document.body.style.overflow = '';
+
+            if (activeChart) {
+                activeChart.destroy();
+                activeChart = null;
+            }
+        }
+
+        async function initializeDashboard() {
+            renderMetricCards();
+
+            const [dataResult, commitResult] = await Promise.allSettled([
+                fetchCsvData(),
+                getLatestCommitDate(REPO_OWNER, REPO_NAME, STATS_BRANCH)
+            ]);
+
+            if (dataResult.status === 'fulfilled') {
+                allData = dataResult.value;
+                processData(allData);
+            } else {
+                showAlert('Unable to load dashboard data from the repository statistics feed.');
+            }
+
+            if (commitResult.status === 'fulfilled' && commitResult.value) {
+                dashboardStatus.textContent = `Last refresh: ${moment(commitResult.value).format('MMMM DD, YYYY [at] HH:mm:ss')}`;
+            } else {
+                dashboardStatus.textContent = 'Last refresh unavailable right now.';
+            }
+        }
+
+        dashboardMetrics.addEventListener('click', event => {
+            const trigger = event.target.closest('[data-open-chart]');
+            if (!trigger) {
+                return;
+            }
+
+            openChart(trigger.dataset.openChart);
+        });
+
+        document.getElementById('chartModalClose').addEventListener('click', closeChart);
+
+        chartModal.addEventListener('click', event => {
+            if (event.target === chartModal) {
+                closeChart();
+            }
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && chartModal.classList.contains('is-open')) {
+                closeChart();
+            }
+        });
+
+        initializeDashboard().catch(error => {
+            console.error('Dashboard initialization failed:', error);
+            dashboardStatus.textContent = 'Dashboard failed to initialize.';
+            showAlert('An unexpected error occurred while building the dashboard.');
+        });
     </script>
 </body>
 
