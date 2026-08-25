@@ -12,576 +12,762 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
     <style>
+        :root {
+            --zephyr: #8B5CF6;
+            --ink: #1f2933;
+            --muted: #6b7280;
+            --card-border: #e5e7eb;
+        }
+
         body {
-            background-color: #f5f5f5;
+            background-color: #f4f5f7;
+            color: var(--ink);
             font-family: 'Open Sans', 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
         }
 
-        .card {
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-            border: none;
-            border-radius: 10px;
-            transition: 0.3s;
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 650;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.35rem;
         }
 
-        .card:hover {
-            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
-            transform: translateY(-5px);
+        .page-caption {
+            color: var(--muted);
+            font-size: 0.95rem;
         }
 
-        .clickable-card:hover {
-            box-shadow: 0 8px 16px 0 rgba(99, 102, 241, 0.08), 0 4px 8px 0 rgba(0, 0, 0, 0.1);
-            transform: translateY(-3px);
+        .page-caption a {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .metric-card {
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            background: #fff;
+            transition: box-shadow 0.15s ease, border-color 0.15s ease;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .metric-card:hover {
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+        }
+
+        .metric-card:focus {
+            outline: none;
+        }
+
+        .metric-card:focus-visible {
+            outline: 2px solid var(--zephyr);
+            outline-offset: 3px;
+        }
+
+        .metric-card.is-active {
+            border-color: #c4b5fd;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+        }
+
+        .metric-card .card-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-rows: auto auto auto 1fr;
+            column-gap: 0.75rem;
+            row-gap: 0.1rem;
+            min-height: 148px;
+            padding: 0.85rem 1rem 0.7rem;
         }
 
         .card-title {
-            font-weight: bold;
-            color: #007BFF;
-            font-size: 1rem;
+            grid-column: 1;
+            grid-row: 1;
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin: 0;
         }
 
-        .card-text {
-            font-size: 14px;
+        .card-kicker {
+            grid-column: 1;
+            grid-row: 2;
+            color: var(--muted);
+            font-size: 0.75rem;
+            margin: 0;
+        }
+
+        .card-metric {
+            display: contents;
+        }
+
+        .current-value,
+        .no-data-value {
+            grid-column: 2;
+            grid-row: 1 / 3;
+            align-self: center;
+            justify-self: end;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
         }
 
         .current-value {
-            font-size: 4em;
-            font-weight: 900;
+            font-size: 2.75rem;
+            font-weight: 650;
+            letter-spacing: -0.04em;
+            color: var(--ink);
         }
 
-        .light-green {
-            color: #4caf50;
+        .no-data-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--muted);
         }
 
-        .dark-green {
-            color: #087f23;
+        .metric-foot {
+            grid-column: 1 / -1;
+            grid-row: 3;
         }
 
-        .light-red {
-            color: #f44336;
+        .share-line,
+        .caveat {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin: 0.15rem 0 0;
+            text-align: right;
         }
 
-        .dark-red {
-            color: #b71c1c;
+        .delta-line {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.15rem 0.75rem;
+            font-size: 0.78rem;
+            margin-top: 0.35rem;
+            white-space: nowrap;
+        }
+
+        .delta-line .badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.18em 0.45em;
+        }
+
+        .sparkline-wrap {
+            grid-column: 1 / -1;
+            grid-row: 4;
+            align-self: end;
+            margin-top: 0.4rem;
+            height: 36px;
+        }
+
+        .light-green { color: #4caf50; }
+        .dark-green { color: #087f23; }
+        .light-red { color: #f44336; }
+        .dark-red { color: #b71c1c; }
+        .neutral { color: var(--muted); }
+
+        .badge.light-green { background-color: #e8f5e9; color: #2e7d32; }
+        .badge.dark-green { background-color: #2e7d32; color: #fff; }
+        .badge.light-red { background-color: #ffebee; color: #c62828; }
+        .badge.dark-red { background-color: #c62828; color: #fff; }
+        .badge.neutral { background-color: #eef1f4; color: #4b5563; }
+
+        .trends-panel {
+            background: #fff;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            padding: 1.25rem 1.25rem 1.5rem;
+        }
+
+        .trends-toolbar {
+            gap: 1rem;
+        }
+
+        .metric-tabs {
+            gap: 0.4rem;
+        }
+
+        .metric-tabs .btn {
+            font-size: 0.85rem;
+            border-radius: 999px;
+            padding: 0.25rem 0.8rem;
+        }
+
+        .metric-tabs .btn.active {
+            background-color: var(--zephyr);
+            border-color: var(--zephyr);
+            color: #fff;
+        }
+
+        .trends-chart-wrap {
+            position: relative;
+            height: 420px;
+            margin-top: 1rem;
         }
 
         footer {
             padding: 20px;
-            background-color: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .badge.light-green {
-            background-color: #c8e6c9;
-            color: #087f23;
-        }
-        .badge.dark-green {
-            background-color: #087f23;
-            color: #fff;
-        }
-        .badge.light-red {
-            background-color: #ffcdd2;
-            color: #b71c1c;
-        }
-        .badge.dark-red {
-            background-color: #b71c1c;
-            color: #fff;
-        }
-
-        .clickable-card {
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-
-
-        .chart-button {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: linear-gradient(135deg, #a8a9e7, #b5a2e0);
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            font-size: 14px;
-            color: white;
-            opacity: 0.8;
-        }
-
-        .chart-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-            opacity: 1;
-        }
-
-        .chart-button:active {
-            transform: scale(0.95);
-        }
-
-        .clickable-card .card-title {
-            padding-right: 60px;
-        }
-
-
-
-        .chart-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-
-        .chart-modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 1200px;
-            height: 80%;
-            position: relative;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-
-        .chart-close {
-            color: #aaa;
-            float: right;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            position: absolute;
-            right: 20px;
-            top: 15px;
-            z-index: 1001;
-        }
-
-        .chart-close:hover,
-        .chart-close:focus {
-            color: #000;
-            text-decoration: none;
-        }
-
-        .chart-container {
-            position: relative;
-            height: calc(100% - 60px);
-            margin-top: 40px;
-        }
-
-        #contributorsChart {
-            background-color: #ffffff;
-            border-radius: 10px;
+            color: var(--muted);
+            font-size: 0.9rem;
         }
     </style>
-
 </head>
 
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Zephyr Project Dashboard</h1>
-        <h2 class="text-center mb-4"></h2>
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card clickable-card" id="uniqueContributorsCard">
+    <div class="container mt-5 mb-4">
+        <header class="text-center mb-4">
+            <h1 class="page-title">Zephyr Project Dashboard</h1>
+            <p class="page-caption mb-0" id="dataCaption">
+                Loading data…
+                · <a href="https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv">CSV</a>
+            </p>
+        </header>
+
+        <div class="row" id="kpiRow">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card metric-card is-active" id="uniqueContributorsCard" tabindex="0" role="button"
+                    data-metric="contributors" aria-pressed="true"
+                    aria-label="Contributors past month. Show trend.">
                     <div class="card-body">
-                        <h5 class="card-title">Contributors (past month)</h5>
-                        <p class="card-text">...</p>
-                        <button class="chart-button" title="View Contributors Chart">
-                            📊
-                        </button>
+                        <h2 class="card-title h5">Contributors</h2>
+                        <p class="card-kicker">Past month</p>
+                        <div class="card-metric"></div>
+                        <div class="sparkline-wrap"><canvas id="spark-contributors" aria-hidden="true"></canvas></div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card" id="maintainersCard">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card metric-card" id="commitsCard" tabindex="0" role="button"
+                    data-metric="commits" aria-pressed="false"
+                    aria-label="Commits past month. Show trend.">
                     <div class="card-body">
-                        <h5 class="card-title">Maintainers</h5>
-                        <p class="card-text">...</p>
+                        <h2 class="card-title h5">Commits</h2>
+                        <p class="card-kicker">Past month</p>
+                        <div class="card-metric"></div>
+                        <div class="sparkline-wrap"><canvas id="spark-commits" aria-hidden="true"></canvas></div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card" id="driversCard">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card metric-card" id="maintainersCard" tabindex="0" role="button"
+                    data-metric="maintainers" aria-pressed="false"
+                    aria-label="Maintainers. Show trend.">
                     <div class="card-body">
-                        <h5 class="card-title">Sensor Drivers</h5>
-                        <p class="card-text">...</p>
+                        <h2 class="card-title h5">Maintainers</h2>
+                        <p class="card-kicker">Current</p>
+                        <div class="card-metric"></div>
+                        <div class="sparkline-wrap"><canvas id="spark-maintainers" aria-hidden="true"></canvas></div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card" id="samplesCard">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card metric-card" id="driversCard" tabindex="0" role="button"
+                    data-metric="drivers" aria-pressed="false"
+                    aria-label="Sensor drivers. Show trend.">
                     <div class="card-body">
-                        <h5 class="card-title">Samples</h5>
-                        <p class="card-text">...</p>
+                        <h2 class="card-title h5">Sensor drivers</h2>
+                        <p class="card-kicker">Current</p>
+                        <div class="card-metric"></div>
+                        <div class="sparkline-wrap"><canvas id="spark-drivers" aria-hidden="true"></canvas></div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
-                <div class="card clickable-card" id="boardsCard">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card metric-card" id="samplesCard" tabindex="0" role="button"
+                    data-metric="samples" aria-pressed="false"
+                    aria-label="Samples. Show trend.">
                     <div class="card-body">
-                        <h5 class="card-title">Boards</h5>
-                        <p class="card-text">...</p>
-                        <button class="chart-button" title="View Boards Chart">
-                            📊
-                        </button>
+                        <h2 class="card-title h5">Samples</h2>
+                        <p class="card-kicker">Current</p>
+                        <div class="card-metric"></div>
+                        <div class="sparkline-wrap"><canvas id="spark-samples" aria-hidden="true"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card metric-card" id="boardsCard" tabindex="0" role="button"
+                    data-metric="boards" aria-pressed="false"
+                    aria-label="Boards. Show trend.">
+                    <div class="card-body">
+                        <h2 class="card-title h5">Boards</h2>
+                        <p class="card-kicker">Current</p>
+                        <div class="card-metric"></div>
+                        <div class="sparkline-wrap"><canvas id="spark-boards" aria-hidden="true"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card metric-card" id="assistedCard" tabindex="0" role="button"
+                    data-metric="assisted" aria-pressed="false"
+                    aria-label="AI-assisted commits past month. Show trend.">
+                    <div class="card-body">
+                        <h2 class="card-title h5">AI-assisted commits</h2>
+                        <p class="card-kicker">Past month · self-reported</p>
+                        <div class="card-metric"></div>
+                        <div class="sparkline-wrap"><canvas id="spark-assisted" aria-hidden="true"></canvas></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Contributors Chart Modal -->
-    <div id="contributorsChartModal" class="chart-modal">
-        <div class="chart-modal-content">
-            <span class="chart-close" data-modal="contributorsChartModal">&times;</span>
-            <h3 style="margin-top: 0; color: #007BFF; font-weight: bold;">Unique Contributors per Month</h3>
-            <div class="chart-container">
-                <canvas id="contributorsChart"></canvas>
+        <section id="trends" class="trends-panel mt-2" aria-labelledby="trendsHeading">
+            <div class="d-flex flex-wrap justify-content-between align-items-start trends-toolbar mb-2">
+                <div>
+                    <h2 id="trendsHeading" class="h5 mb-1">Trends</h2>
+                    <p class="text-muted small mb-2" id="trendsSubtitle">Zephyr, monthly</p>
+                </div>
+                <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" id="compareRtos" role="switch">
+                    <label class="form-check-label" for="compareRtos">Compare other RTOS</label>
+                </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Boards Chart Modal -->
-    <div id="boardsChartModal" class="chart-modal">
-        <div class="chart-modal-content">
-            <span class="chart-close" data-modal="boardsChartModal">&times;</span>
-            <h3 style="margin-top: 0; color: #007BFF; font-weight: bold;">Supported Boards</h3>
-            <div class="chart-container">
-                <canvas id="boardsChart"></canvas>
+            <div class="metric-tabs d-flex flex-wrap" role="tablist" aria-label="Trend metric">
+                <button type="button" class="btn btn-outline-secondary active" role="tab" aria-selected="true" data-metric="contributors">Contributors</button>
+                <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="commits">Commits</button>
+                <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="maintainers">Maintainers</button>
+                <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="drivers">Drivers</button>
+                <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="samples">Samples</button>
+                <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="boards">Boards</button>
+                <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="assisted">AI-assisted</button>
             </div>
-        </div>
+            <div class="trends-chart-wrap">
+                <canvas id="trendsChart" aria-label="Monthly trend chart"></canvas>
+            </div>
+        </section>
     </div>
 
-    <footer class="text-center mt-5">
-        <p>
-            Data source: <a
-                href="https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv"
-                target="_blank">CSV file</a>
-        </p>
+    <footer class="text-center">
+        <p class="mb-0">Zephyr is the highlighted series. Comparison with other RTOS is opt-in.</p>
     </footer>
 
-
     <script>
-        // Global variable to store all CSV data for chart functionality
-        let allData = [];
+        const CSV_URL = 'https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv';
+        const METRICS = {
+            contributors: {
+                field: 'numberOfUniqueContributorsPastMonth',
+                label: 'Contributors',
+                suffix: ' contributors',
+                card: '#uniqueContributorsCard',
+                spark: 'spark-contributors'
+            },
+            commits: {
+                field: 'numberOfCommitsPastMonth',
+                label: 'Commits',
+                suffix: ' commits',
+                card: '#commitsCard',
+                spark: 'spark-commits'
+            },
+            maintainers: {
+                field: 'maintainers',
+                label: 'Maintainers',
+                suffix: ' maintainers',
+                card: '#maintainersCard',
+                spark: 'spark-maintainers'
+            },
+            drivers: {
+                field: 'drivers',
+                label: 'Sensor drivers',
+                suffix: ' drivers',
+                card: '#driversCard',
+                spark: 'spark-drivers'
+            },
+            samples: {
+                field: 'samples',
+                label: 'Samples',
+                suffix: ' samples',
+                card: '#samplesCard',
+                spark: 'spark-samples'
+            },
+            boards: {
+                field: 'boards',
+                label: 'Boards',
+                suffix: ' boards',
+                card: '#boardsCard',
+                spark: 'spark-boards'
+            },
+            assisted: {
+                field: 'assistedByCommitsPastMonth',
+                label: 'AI-assisted commits',
+                suffix: ' AI-assisted commits',
+                card: '#assistedCard',
+                spark: 'spark-assisted',
+                optional: true
+            }
+        };
 
-        // Fetch CSV data and parse it
-        const url = "https://raw.githubusercontent.com/kartben/zephyr-repo-metrics/statistics/stats/all.csv";
-        Papa.parse(url, {
+        const COLORS = [
+            '#8B5CF6', '#EF4444', '#10B981', '#F59E0B', '#3B82F6',
+            '#8B5A2B', '#EC4899', '#06B6D4', '#84CC16', '#F97316',
+            '#6366F1', '#14B8A6', '#A855F7', '#FB7185', '#64748B'
+        ];
+
+        let allData = [];
+        let activeMetric = 'contributors';
+        let compareRtos = false;
+        let trendsChart = null;
+        const sparkCharts = {};
+
+        Papa.parse(CSV_URL, {
             download: true,
             header: true,
+            skipEmptyLines: true,
             complete: function (results) {
-                allData = results.data;
-                processData(results.data);
+                allData = (results.data || []).filter(row => row && row.project && row.date);
+                processDashboard(allData);
+            },
+            error: function (err) {
+                $('#dataCaption').text('Could not load CSV data.');
+                console.error(err);
             }
         });
-
 
         async function getLatestCommitDate(repoOwner, repoName, branchName) {
-        const url = `https://api.github.com/repos/${repoOwner}/${repoName}/commits?sha=${branchName}&per_page=1`;
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-            'Accept': 'application/vnd.github+json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const commits = await response.json();
-        const latestCommitDate = commits[0].commit.committer.date;
-        return latestCommitDate;
-        }
-
-        const repoOwner = 'kartben';
-        const repoName = 'zephyr-repo-metrics';
-        const branchName = 'statistics';
-
-        function updateTitleWithDate(latestDate) {
-            const formattedDate = moment(latestDate).format('MMMM DD, YYYY [at] HH:mm:ss');
-            $('h2').html(`Last Update: ${formattedDate}`);
-        }
-
-        getLatestCommitDate(repoOwner, repoName, branchName)
-            .then(date => {
-                updateTitleWithDate(date);
-            })
-            .catch(error => {
-                console.error('Error fetching commit date:', error);
+            const url = `https://api.github.com/repos/${repoOwner}/${repoName}/commits?sha=${branchName}&per_page=1`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'application/vnd.github+json' }
             });
-
-        function processData(data) {
-            let zephyrData = data.filter(row => row.project === 'Zephyr');
-            let zephyrStats = {};
-
-            zephyrData.forEach(row => {
-                const dateKey = moment(row.date).format('YYYY-MM-DD');
-                if (!zephyrStats[dateKey]) {
-                    zephyrStats[dateKey] = {
-                        numberOfUniqueContributors: 0,
-                        drivers: 0,
-                        samples: 0,
-                        boards: 0
-                    };
-                }
-                zephyrStats[dateKey].numberOfUniqueContributors = parseInt(row.numberOfUniqueContributorsPastMonth);
-                zephyrStats[dateKey].maintainers = parseInt(row.maintainers);
-                zephyrStats[dateKey].drivers = parseInt(row.drivers);
-                zephyrStats[dateKey].samples = parseInt(row.samples);
-                zephyrStats[dateKey].boards = parseInt(row.boards);
-            });
-
-            function calculatePercentageChange(current, previous) {
-                return ((current - previous) / previous) * 100;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            const commits = await response.json();
+            return commits[0].commit.committer.date;
+        }
 
-            function generateCardText(current, prevMonth, prevYear) {
-                const getSignAndColorClass = (value) => {
-                    const sign = value >= 0 ? '+' : '';
-                    const colorClass = Math.abs(value) >= 10 ? 'dark' : 'light';
-                    return {
-                        sign,
-                        colorClass: `${colorClass}-${value >= 0 ? 'green' : 'red'}`
-                    };
-                };
+        function parseMetric(row, field) {
+            if (!row || !Object.prototype.hasOwnProperty.call(row, field)) {
+                return null;
+            }
+            const raw = row[field];
+            if (raw === undefined || raw === null || raw === '' || raw === 'null') {
+                return null;
+            }
+            const n = Number(raw);
+            return Number.isFinite(n) ? n : null;
+        }
 
-                const monthAbs = current - (prevMonth ?? 0);
-                const yearAbs = current - (prevYear ?? 0);
-                const monthChange = prevMonth ? ((current - prevMonth) / prevMonth) * 100 : 0;
-                const yearChange = prevYear ? ((current - prevYear) / prevYear) * 100 : 0;
+        function hasField(data, field) {
+            return data.some(row => Object.prototype.hasOwnProperty.call(row, field));
+        }
 
-                const monthSignAndColor = getSignAndColorClass(monthAbs);
-                const yearSignAndColor = getSignAndColorClass(yearAbs);
+        function isMonthEnd(dateStr) {
+            const m = moment(dateStr, 'YYYY-MM-DD', true);
+            return m.isValid() && m.date() === m.daysInMonth();
+        }
 
+        function formatCount(n) {
+            return Number(n).toLocaleString();
+        }
+
+        function formatPct(pct) {
+            if (pct == null || Number.isNaN(pct)) {
+                return null;
+            }
+            const decimals = Math.abs(pct) >= 10 ? 0 : 1;
+            const rounded = Number(pct.toFixed(decimals));
+            const sign = rounded > 0 ? '+' : '';
+            return `${sign}${rounded}%`;
+        }
+
+        function relativeClass(pct) {
+            if (pct == null || Number.isNaN(pct) || pct === 0) {
+                return 'neutral';
+            }
+            const tone = Math.abs(pct) >= 10 ? 'dark' : 'light';
+            return `${tone}-${pct > 0 ? 'green' : 'red'}`;
+        }
+
+        function pctChange(current, previous) {
+            if (current == null || previous == null || previous === 0) {
+                return null;
+            }
+            return ((current - previous) / previous) * 100;
+        }
+
+        function isBrokenSeries(latest, historical) {
+            const missingOrZero = latest == null || Number.isNaN(latest) || latest === 0;
+            if (!missingOrZero) {
+                return false;
+            }
+            return historical.some(v => v != null && !Number.isNaN(v) && v > 0);
+        }
+
+        function zephyrByDate(data) {
+            const map = {};
+            data.filter(row => row.project === 'Zephyr').forEach(row => {
+                map[row.date] = row;
+            });
+            return map;
+        }
+
+        function sortedDates(data, project) {
+            return [...new Set(data.filter(row => row.project === project).map(row => row.date))]
+                .filter(Boolean)
+                .sort();
+        }
+
+        function monthlyDates(dates) {
+            return dates.filter(isMonthEnd);
+        }
+
+        function sparkValues(data, field, latestDate) {
+            const dates = monthlyDates(sortedDates(data, 'Zephyr'));
+            if (latestDate && !isMonthEnd(latestDate) && !dates.includes(latestDate)) {
+                dates.push(latestDate);
+            }
+            const byDate = zephyrByDate(data);
+            const window = dates.slice(-24);
+            return window.map(d => parseMetric(byDate[d], field));
+        }
+
+        function generateCardHtml(opts) {
+            const { latest, prevMonth, prevYear, historical, shareHtml, emptyHint } = opts;
+
+            if (latest == null || isBrokenSeries(latest, historical)) {
+                const hint = emptyHint
+                    ? `<p class="caveat">${emptyHint}</p>`
+                    : '';
                 return `
-        <span class="current-value mb-2 d-block">${current}</span>
-        <div class="mb-1">
-            <span class="fw-bold">Month-over-Month:</span>
-            <span class="badge ${monthSignAndColor.colorClass} me-1" style="font-size:1em;">${monthSignAndColor.sign}${monthAbs}</span>
-            <span class="text-muted small">(${monthChange >= 0 ? '+' : ''}${monthChange.toFixed(2)}%)</span>
-        </div>
-        <div>
-            <span class="fw-bold">Year-over-Year:</span>
-            <span class="badge ${yearSignAndColor.colorClass} me-1" style="font-size:1em;">${yearSignAndColor.sign}${yearAbs}</span>
-            <span class="text-muted small">(${yearChange >= 0 ? '+' : ''}${yearChange.toFixed(2)}%)</span>
-        </div>
-    `;
-
+                    <div class="no-data-value">No data</div>
+                    <div class="metric-foot">${hint}</div>
+                `;
             }
 
-            const dateKeys = Object.keys(zephyrStats);
-            const latestKey = dateKeys[dateKeys.length - 1];
-            const latestData = zephyrStats[latestKey];
-            const prevMonthKey = moment(latestKey).subtract(1, 'month').format('YYYY-MM-DD');
-            const prevYearKey = moment(latestKey).subtract(12, 'month').format('YYYY-MM-DD');
+            const monthAbs = prevMonth == null ? null : latest - prevMonth;
+            const yearAbs = prevYear == null ? null : latest - prevYear;
+            const monthPct = pctChange(latest, prevMonth);
+            const yearPct = pctChange(latest, prevYear);
+            const monthClass = relativeClass(monthPct);
+            const yearClass = relativeClass(yearPct);
+            const monthPctLabel = formatPct(monthPct);
+            const yearPctLabel = formatPct(yearPct);
 
-            // Update dashboard cards
-            $('#uniqueContributorsCard .card-text').html(generateCardText(
-                latestData.numberOfUniqueContributors,
-                zephyrStats[prevMonthKey]?.numberOfUniqueContributors,
-                zephyrStats[prevYearKey]?.numberOfUniqueContributors
-            ));
+            const monthBadge = monthAbs == null
+                ? '<span class="text-muted">—</span>'
+                : `<span class="badge ${monthClass}">${monthAbs > 0 ? '+' : ''}${formatCount(monthAbs)}</span>
+                   ${monthPctLabel ? `<span class="text-muted">${monthPctLabel}</span>` : ''}`;
+            const yearBadge = yearAbs == null
+                ? '<span class="text-muted">—</span>'
+                : `<span class="badge ${yearClass}">${yearAbs > 0 ? '+' : ''}${formatCount(yearAbs)}</span>
+                   ${yearPctLabel ? `<span class="text-muted">${yearPctLabel}</span>` : ''}`;
 
-            $('#maintainersCard .card-text').html(generateCardText(
-                latestData.maintainers,
-                zephyrStats[prevMonthKey]?.maintainers,
-                zephyrStats[prevYearKey]?.maintainers
-            ));
-
-            $('#driversCard .card-text').html(generateCardText(
-                latestData.drivers,
-                zephyrStats[prevMonthKey]?.drivers,
-                zephyrStats[prevYearKey]?.drivers
-            ));
-
-            $('#samplesCard .card-text').html(generateCardText(
-                latestData.samples,
-                zephyrStats[prevMonthKey]?.samples,
-                zephyrStats[prevYearKey]?.samples
-            ));
-
-            $('#boardsCard .card-text').html(generateCardText(
-                latestData.boards,
-                zephyrStats[prevMonthKey]?.boards,
-                zephyrStats[prevYearKey]?.boards
-            ));
+            return `
+                <span class="current-value">${formatCount(latest)}</span>
+                <div class="metric-foot">
+                    ${shareHtml || ''}
+                    <div class="delta-line">
+                        <span><span class="text-muted">MoM</span> ${monthBadge}</span>
+                        <span><span class="text-muted">YoY</span> ${yearBadge}</span>
+                    </div>
+                </div>
+            `;
         }
 
-        // Chart functionality
-        let contributorsChart = null;
-        let boardsChart = null;
-
-        // Modal event handlers
-        $('#uniqueContributorsCard').click(function(e) {
-            $('#contributorsChartModal').show();
-            createChart('contributors');
-        });
-
-        $('#boardsCard').click(function(e) {
-            $('#boardsChartModal').show();
-            createChart('boards');
-        });
-
-        $('.chart-close').click(function() {
-            const modalId = $(this).data('modal');
-            $(`#${modalId}`).hide();
-
-            if (modalId === 'contributorsChartModal' && contributorsChart) {
-                contributorsChart.destroy();
-                contributorsChart = null;
-            } else if (modalId === 'boardsChartModal' && boardsChart) {
-                boardsChart.destroy();
-                boardsChart = null;
+        function drawSparkline(canvasId, values) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                return;
             }
-        });
-
-        // Close modal when clicking outside
-        $(window).click(function(event) {
-            if (event.target.id === 'contributorsChartModal') {
-                $('#contributorsChartModal').hide();
-                if (contributorsChart) {
-                    contributorsChart.destroy();
-                    contributorsChart = null;
-                }
-            } else if (event.target.id === 'boardsChartModal') {
-                $('#boardsChartModal').hide();
-                if (boardsChart) {
-                    boardsChart.destroy();
-                    boardsChart = null;
-                }
+            if (sparkCharts[canvasId]) {
+                sparkCharts[canvasId].destroy();
+                sparkCharts[canvasId] = null;
             }
-        });
-
-        // Close modal with Escape key
-        $(document).keydown(function(event) {
-            if (event.key === 'Escape' || event.keyCode === 27) {
-                // Check if contributors modal is open
-                if ($('#contributorsChartModal').is(':visible')) {
-                    $('#contributorsChartModal').hide();
-                    if (contributorsChart) {
-                        contributorsChart.destroy();
-                        contributorsChart = null;
-                    }
-                }
-                // Check if boards modal is open
-                else if ($('#boardsChartModal').is(':visible')) {
-                    $('#boardsChartModal').hide();
-                    if (boardsChart) {
-                        boardsChart.destroy();
-                        boardsChart = null;
-                    }
-                }
+            const series = values.filter(v => v != null);
+            if (series.length < 2) {
+                return;
             }
-        });
-
-        function createChart(type) {
-            const config = getChartConfig(type);
-
-            if (type === 'contributors') {
-                if (contributorsChart) {
-                    contributorsChart.destroy();
-                }
-            } else if (type === 'boards') {
-                if (boardsChart) {
-                    boardsChart.destroy();
-                }
-            }
-
-            const chartData = processDataForChart(config.dataField, config.aggregation);
-            const ctx = document.getElementById(config.canvasId).getContext('2d');
-
-            // Generate distinct colors for each RTOS
-            const colors = [
-                '#8B5CF6', // Purple for Zephyr (will be overridden)
-                '#EF4444', // Red
-                '#10B981', // Green
-                '#F59E0B', // Yellow
-                '#3B82F6', // Blue
-                '#8B5A2B', // Brown
-                '#EC4899', // Pink
-                '#06B6D4', // Cyan
-                '#84CC16', // Lime
-                '#F97316'  // Orange
-            ];
-
-            const datasets = chartData.projects.map((project, index) => {
-                const isZephyr = project.toLowerCase() === 'zephyr';
-                return {
-                    label: project,
-                    data: chartData.quarters.map(quarter => {
-                        const entry = chartData.data.find(d => d.project === project && d.quarter === quarter);
-                        return entry ? entry.value : null;
-                    }),
-                    borderColor: isZephyr ? '#8B5CF6' : colors[index % colors.length],
-                    backgroundColor: isZephyr ? 'rgba(139, 92, 246, 0.1)' : `${colors[index % colors.length]}20`,
-                    borderWidth: isZephyr ? 4 : 2,
-                    tension: 0,
-                    pointRadius: isZephyr ? 6 : 4,
-                    pointHoverRadius: isZephyr ? 8 : 6,
-                    pointBackgroundColor: isZephyr ? '#8B5CF6' : colors[index % colors.length],
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    fill: false,
-                    spanGaps: true
-                };
-            });
-
-            const chart = new Chart(ctx, {
+            sparkCharts[canvasId] = new Chart(canvas, {
                 type: 'line',
                 data: {
-                    labels: chartData.quarters,
-                    datasets: datasets
+                    labels: values.map((_, i) => i),
+                    datasets: [{
+                        data: values,
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.08)',
+                        borderWidth: 1.5,
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        tension: 0.25,
+                        fill: true,
+                        spanGaps: true
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    },
+                    animation: false
+                }
+            });
+        }
+
+        function processDashboard(data) {
+            const zephyrDates = sortedDates(data, 'Zephyr');
+            const latestDate = zephyrDates[zephyrDates.length - 1];
+            const byDate = zephyrByDate(data);
+            const latestRow = byDate[latestDate] || {};
+            const prevMonthDate = moment(latestDate).subtract(1, 'month').format('YYYY-MM-DD');
+            const prevYearDate = moment(latestDate).subtract(12, 'month').format('YYYY-MM-DD');
+            const monthlyHist = monthlyDates(zephyrDates).map(d => byDate[d]);
+
+            $('#dataCaption').html(
+                `Data as of ${moment(latestDate).format('MMMM D, YYYY')}` +
+                ` · <a href="${CSV_URL}">CSV</a>`
+            );
+
+            getLatestCommitDate('kartben', 'zephyr-repo-metrics', 'statistics')
+                .then(date => {
+                    $('#dataCaption').html(
+                        `Data as of ${moment(latestDate).format('MMMM D, YYYY')}` +
+                        ` <span class="text-muted">(collected ${moment(date).format('MMM D, YYYY')})</span>` +
+                        ` · <a href="${CSV_URL}">CSV</a>`
+                    );
+                })
+                .catch(() => {});
+
+            Object.entries(METRICS).forEach(([key, metric]) => {
+                const fieldPresent = hasField(data, metric.field);
+                const latest = fieldPresent ? parseMetric(latestRow, metric.field) : null;
+                const prevMonth = fieldPresent ? parseMetric(byDate[prevMonthDate], metric.field) : null;
+                const prevYear = fieldPresent ? parseMetric(byDate[prevYearDate], metric.field) : null;
+                const historical = monthlyHist.map(row => parseMetric(row, metric.field));
+
+                let shareHtml = '';
+                let emptyHint = '';
+                if (key === 'assisted') {
+                    if (!fieldPresent) {
+                        emptyHint = 'Will appear after the next collection run.';
+                    } else if (latest != null && !isBrokenSeries(latest, historical)) {
+                        const commits = parseMetric(latestRow, 'numberOfCommitsPastMonth');
+                        if (commits && commits > 0) {
+                            const share = (latest / commits) * 100;
+                            const shareLabel = formatPct(share) || '0%';
+                            shareHtml = `<p class="share-line">${shareLabel.replace('+', '')} of commits this month</p>`;
+                        }
+                    }
+                }
+
+                $(`${metric.card} .card-metric`).html(generateCardHtml({
+                    latest,
+                    prevMonth,
+                    prevYear,
+                    historical,
+                    shareHtml,
+                    emptyHint
+                }));
+                drawSparkline(metric.spark, sparkValues(data, metric.field, latestDate));
+            });
+
+            renderTrends();
+        }
+
+        function monthlySeries(data, field, project) {
+            const rows = data
+                .filter(row => row.project === project && isMonthEnd(row.date) && moment(row.date).isAfter('2018-12-31'))
+                .sort((a, b) => a.date.localeCompare(b.date));
+            const latestDate = sortedDates(data, project).slice(-1)[0];
+            if (latestDate && !isMonthEnd(latestDate) && moment(latestDate).isAfter('2018-12-31')) {
+                const latestRow = data.find(row => row.project === project && row.date === latestDate);
+                if (latestRow) {
+                    rows.push(latestRow);
+                }
+            }
+            return rows.map(row => ({
+                date: row.date,
+                label: moment(row.date).format('MMM YYYY'),
+                value: parseMetric(row, field)
+            }));
+        }
+
+        function renderTrends() {
+            const metric = METRICS[activeMetric];
+            const compare = document.getElementById('compareRtos').checked;
+            compareRtos = compare;
+
+            const projects = compare
+                ? [...new Set(allData.map(row => row.project))]
+                : ['Zephyr'];
+
+            const zephyrSeries = monthlySeries(allData, metric.field, 'Zephyr');
+            const labels = zephyrSeries.map(p => p.label);
+
+            const datasets = [];
+            projects.forEach((project) => {
+                const series = monthlySeries(allData, metric.field, project);
+                const byLabel = {};
+                series.forEach(p => { byLabel[p.label] = p.value; });
+                const data = labels.map(label => (label in byLabel ? byLabel[label] : null));
+                if (data.every(v => v == null)) {
+                    return;
+                }
+                const isZephyr = project.toLowerCase() === 'zephyr';
+                const colorIndex = datasets.length;
+                const color = isZephyr ? COLORS[0] : COLORS[(colorIndex + 1) % COLORS.length];
+                datasets.push({
+                    label: project,
+                    data,
+                    borderColor: color,
+                    backgroundColor: isZephyr ? 'rgba(139, 92, 246, 0.08)' : `${color}20`,
+                    borderWidth: isZephyr ? 3 : 1.5,
+                    tension: 0.15,
+                    pointRadius: isZephyr ? 3 : 2,
+                    pointHoverRadius: isZephyr ? 5 : 4,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 1,
+                    fill: false,
+                    spanGaps: true
+                });
+            });
+
+            datasets.sort((a, b) => {
+                if (a.label.toLowerCase() === 'zephyr') return -1;
+                if (b.label.toLowerCase() === 'zephyr') return 1;
+                return a.label.localeCompare(b.label);
+            });
+
+            $('#trendsSubtitle').text(
+                compare ? `${metric.label}, monthly · all RTOS` : `${metric.label}, Zephyr monthly`
+            );
+
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            if (trendsChart) {
+                trendsChart.destroy();
+            }
+
+            trendsChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
-                        title: {
-                            display: false,
-                            text: config.title,
-                            font: {
-                                size: 18,
-                                weight: 'bold'
-                            },
-                            color: '#333'
-                        },
                         legend: {
-                            display: true,
+                            display: compare && datasets.length > 1,
                             position: 'top',
                             labels: {
                                 usePointStyle: true,
                                 pointStyle: 'circle',
-                                font: {
-                                    size: 12
-                                },
-                                generateLabels: function(chart) {
-                                    // Generate labels in the same order as datasets
-                                    return chart.data.datasets.map((dataset, index) => {
-                                        const isZephyr = dataset.label.toLowerCase() === 'zephyr';
-                                        return {
-                                            text: dataset.label,
-                                            fillStyle: dataset.borderColor,
-                                            strokeStyle: dataset.borderColor,
-                                            lineWidth: dataset.borderWidth,
-                                            pointStyle: 'circle',
-                                            hidden: false,
-                                            datasetIndex: index,
-                                            font: isZephyr ? { weight: 'bold', size: 14 } : { size: 12 }
-                                        };
+                                generateLabels: function (chart) {
+                                    const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                    labels.forEach((item) => {
+                                        const isZephyr = (item.text || '').toLowerCase() === 'zephyr';
+                                        item.font = isZephyr
+                                            ? { weight: 'bold', size: 13 }
+                                            : { size: 12 };
                                     });
+                                    return labels;
                                 }
                             }
                         },
@@ -593,198 +779,75 @@
                             bodyColor: '#666',
                             borderColor: '#ddd',
                             borderWidth: 1,
-                            cornerRadius: 8,
-                            displayColors: true,
                             callbacks: {
-                                title: function(tooltipItems) {
-                                    return `Quarter: ${tooltipItems[0].label}`;
+                                title: function (items) {
+                                    return items[0] ? items[0].label : '';
                                 },
-                                label: function(context) {
-                                    const projectName = context.dataset.label;
+                                label: function (context) {
                                     const value = context.parsed.y;
-                                    return `${projectName}: ${value !== null ? value + config.tooltipSuffix : 'No data'}`;
+                                    return `${context.dataset.label}: ${value != null ? formatCount(value) + metric.suffix : 'No data'}`;
                                 }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            display: true,
-                            title: {
-                                display: false,
-                                text: 'Quarter',
-                                font: {
-                                    weight: 'bold',
-                                    size: 14
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            },
+                            grid: { color: 'rgba(0,0,0,0.06)' },
                             ticks: {
                                 maxRotation: 45,
-                                font: {
-                                    size: 14
-                                }
+                                autoSkip: true,
+                                maxTicksLimit: 16
                             }
                         },
                         y: {
-                            display: true,
-                            title: {
-                                display: false,
-                                text: config.yAxisLabel,
-                                font: {
-                                    weight: 'bold',
-                                    size: 14
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            },
                             beginAtZero: true,
-                            ticks: {
-                                font: {
-                                    size: 14
-                                }
-                            }
+                            grid: { color: 'rgba(0,0,0,0.06)' }
                         }
                     },
                     interaction: {
                         mode: 'nearest',
                         axis: 'x',
                         intersect: false
-                    },
-                    elements: {
-                        point: {
-                            hoverRadius: 8
-                        }
-                    },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeInOutQuart'
                     }
                 }
             });
+        }
 
-            // Assign chart to appropriate variable
-            if (type === 'contributors') {
-                contributorsChart = chart;
-            } else if (type === 'boards') {
-                boardsChart = chart;
+        function setActiveMetric(metricKey, scrollToTrends) {
+            if (!METRICS[metricKey]) {
+                return;
+            }
+            activeMetric = metricKey;
+            $('.metric-card').removeClass('is-active').attr('aria-pressed', 'false');
+            $(METRICS[metricKey].card).addClass('is-active').attr('aria-pressed', 'true');
+            $('.metric-tabs [data-metric]').removeClass('active').attr('aria-selected', 'false');
+            $(`.metric-tabs [data-metric="${metricKey}"]`).addClass('active').attr('aria-selected', 'true');
+            if (allData.length) {
+                renderTrends();
+            }
+            if (scrollToTrends) {
+                document.getElementById('trends').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
-        function getChartConfig(type) {
-            switch(type) {
-                case 'contributors':
-                    return {
-                        canvasId: 'contributorsChart',
-                        dataField: 'numberOfUniqueContributorsPastMonth',
-                        title: 'Contributors Per Quarter Since 2018',
-                        yAxisLabel: 'Number of Contributors',
-                        tooltipSuffix: ' contributors',
-                        aggregation: 'max'
-                    };
-                case 'boards':
-                    return {
-                        canvasId: 'boardsChart',
-                        dataField: 'boards',
-                        title: 'Supported Boards Per Quarter Since 2018',
-                        yAxisLabel: 'Number of Boards',
-                        tooltipSuffix: ' boards',
-                        aggregation: 'max'
-                    };
-                default:
-                    throw new Error(`Unknown chart type: ${type}`);
+        $('.metric-card').on('click', function () {
+            setActiveMetric($(this).data('metric'), true);
+        });
+
+        $('.metric-card').on('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setActiveMetric($(this).data('metric'), true);
             }
-        }
+        });
 
-        function processDataForChart(dataField, aggregation) {
-            // Filter data from 2019-01-01 onwards
-            const filteredData = allData.filter(row => {
-                const rowDate = moment(row.date);
-                return rowDate.isAfter('2018-12-31') && row[dataField];
-            });
+        $('.metric-tabs [data-metric]').on('click', function () {
+            setActiveMetric($(this).data('metric'), false);
+        });
 
-            // Group by project and quarter
-            const groupedData = {};
-            const quartersSet = new Set();
-            const projectsSet = new Set();
-
-            filteredData.forEach(row => {
-                const quarter = moment(row.date).format('YYYY [Q]Q');
-                const project = row.project;
-                const value = parseInt(row[dataField]);
-
-                projectsSet.add(project);
-                quartersSet.add(quarter);
-
-                if (!groupedData[project]) {
-                    groupedData[project] = {};
-                }
-
-                // Collect all values for each quarter to calculate average
-                if (!groupedData[project][quarter]) {
-                    groupedData[project][quarter] = [];
-                }
-                groupedData[project][quarter].push(value);
-            });
-
-            // Calculate aggregated values for each quarter
-            Object.keys(groupedData).forEach(project => {
-                Object.keys(groupedData[project]).forEach(quarter => {
-                    const values = groupedData[project][quarter];
-                    let aggregatedValue;
-
-                    if (aggregation === 'max') {
-                        aggregatedValue = Math.max(...values);
-                    } else if (aggregation === 'average') {
-                        aggregatedValue = values.reduce((sum, val) => sum + val, 0) / values.length;
-                        aggregatedValue = Math.round(aggregatedValue);
-                    } else {
-                        throw new Error(`Unknown aggregation method: ${aggregation}`);
-                    }
-
-                    groupedData[project][quarter] = aggregatedValue;
-                });
-            });
-
-            // Sort quarters chronologically
-            const quarters = Array.from(quartersSet).sort((a, b) => {
-                const [yearA, quarterA] = a.split(' Q');
-                const [yearB, quarterB] = b.split(' Q');
-                if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
-                return parseInt(quarterA) - parseInt(quarterB);
-            });
-
-            // Sort projects by their score in the most recent quarter (highest first)
-            const mostRecentQuarter = quarters[quarters.length - 1];
-            const projects = Array.from(projectsSet).sort((a, b) => {
-                const aScore = groupedData[a] && groupedData[a][mostRecentQuarter] ? groupedData[a][mostRecentQuarter] : 0;
-                const bScore = groupedData[b] && groupedData[b][mostRecentQuarter] ? groupedData[b][mostRecentQuarter] : 0;
-                return bScore - aScore; // Sort descending (highest score first)
-            });
-
-            // Create final data structure
-            const data = [];
-            projects.forEach(project => {
-                quarters.forEach(quarter => {
-                    if (groupedData[project] && groupedData[project][quarter]) {
-                        data.push({
-                            project: project,
-                            quarter: quarter,
-                            value: groupedData[project][quarter]
-                        });
-                    }
-                });
-            });
-
-            return {
-                projects: projects,
-                quarters: quarters,
-                data: data
-            };
-        }
+        $('#compareRtos').on('change', function () {
+            renderTrends();
+        });
     </script>
 </body>
 
