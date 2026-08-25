@@ -256,6 +256,18 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card metric-card" id="assistedCard" tabindex="0" role="button"
+                    data-metric="assisted" aria-pressed="false"
+                    aria-label="AI-assisted commits past month. Show trend.">
+                    <div class="card-body">
+                        <h2 class="card-title h5">AI-assisted commits</h2>
+                        <p class="card-kicker">Past month · self-reported</p>
+                        <div class="card-metric"></div>
+                        <div class="sparkline-wrap"><canvas id="spark-assisted" aria-hidden="true"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
                 <div class="card metric-card" id="maintainersCard" tabindex="0" role="button"
                     data-metric="maintainers" aria-pressed="false"
                     aria-label="Maintainers. Show trend.">
@@ -303,18 +315,6 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card metric-card" id="assistedCard" tabindex="0" role="button"
-                    data-metric="assisted" aria-pressed="false"
-                    aria-label="AI-assisted commits past month. Show trend.">
-                    <div class="card-body">
-                        <h2 class="card-title h5">AI-assisted commits</h2>
-                        <p class="card-kicker">Past month · self-reported</p>
-                        <div class="card-metric"></div>
-                        <div class="sparkline-wrap"><canvas id="spark-assisted" aria-hidden="true"></canvas></div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <section id="trends" class="trends-panel mt-2" aria-labelledby="trendsHeading">
@@ -331,11 +331,11 @@
             <div class="metric-tabs d-flex flex-wrap" role="tablist" aria-label="Trend metric">
                 <button type="button" class="btn btn-outline-secondary active" role="tab" aria-selected="true" data-metric="contributors">Contributors</button>
                 <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="commits">Commits</button>
+                <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="assisted">AI-assisted</button>
                 <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="maintainers">Maintainers</button>
                 <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="drivers">Drivers</button>
                 <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="samples">Samples</button>
                 <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="boards">Boards</button>
-                <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="assisted">AI-assisted</button>
             </div>
             <div class="trends-chart-wrap">
                 <canvas id="trendsChart" aria-label="Monthly trend chart"></canvas>
