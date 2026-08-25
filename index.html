@@ -554,12 +554,10 @@
 
             const monthBadge = monthAbs == null
                 ? '<span class="text-muted">—</span>'
-                : `<span class="badge ${monthClass}">${monthAbs > 0 ? '+' : ''}${formatCount(monthAbs)}</span>
-                   ${monthPctLabel ? `<span class="text-muted">${monthPctLabel}</span>` : ''}`;
+                : `${monthPctLabel ? `<span class="badge ${monthClass}">${monthPctLabel}</span> ` : ''}<span class="text-muted">${monthAbs > 0 ? '+' : ''}${formatCount(monthAbs)}</span>`;
             const yearBadge = yearAbs == null
                 ? '<span class="text-muted">—</span>'
-                : `<span class="badge ${yearClass}">${yearAbs > 0 ? '+' : ''}${formatCount(yearAbs)}</span>
-                   ${yearPctLabel ? `<span class="text-muted">${yearPctLabel}</span>` : ''}`;
+                : `${yearPctLabel ? `<span class="badge ${yearClass}">${yearPctLabel}</span> ` : ''}<span class="text-muted">${yearAbs > 0 ? '+' : ''}${formatCount(yearAbs)}</span>`;
 
             return `
                 <span class="current-value">${formatCount(latest)}</span>
