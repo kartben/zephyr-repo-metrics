@@ -158,6 +158,10 @@
             padding: 0.18em 0.45em;
         }
 
+        .delta-line .badge[title] {
+            cursor: help;
+        }
+
         .sparkline-wrap {
             grid-column: 1 / -1;
             grid-row: 4;
@@ -547,25 +551,28 @@
             const yearAbs = prevYear == null ? null : latest - prevYear;
             const monthPct = pctChange(latest, prevMonth);
             const yearPct = pctChange(latest, prevYear);
-            const monthClass = relativeClass(monthPct);
-            const yearClass = relativeClass(yearPct);
-            const monthPctLabel = formatPct(monthPct);
-            const yearPctLabel = formatPct(yearPct);
 
-            const monthBadge = monthAbs == null
-                ? '<span class="text-muted">—</span>'
-                : `${monthPctLabel ? `<span class="badge ${monthClass}">${monthPctLabel}</span> ` : ''}<span class="text-muted">${monthAbs > 0 ? '+' : ''}${formatCount(monthAbs)}</span>`;
-            const yearBadge = yearAbs == null
-                ? '<span class="text-muted">—</span>'
-                : `${yearPctLabel ? `<span class="badge ${yearClass}">${yearPctLabel}</span> ` : ''}<span class="text-muted">${yearAbs > 0 ? '+' : ''}${formatCount(yearAbs)}</span>`;
+            function signedCount(n) {
+                return `${n > 0 ? '+' : ''}${formatCount(n)}`;
+            }
+
+            function deltaBadge(abs, pct, kind) {
+                if (abs == null) {
+                    return '<span class="text-muted">—</span>';
+                }
+                const tip = `${kind} ${signedCount(abs)}`;
+                const pctLabel = formatPct(pct);
+                const colorClass = pctLabel ? relativeClass(pct) : 'neutral';
+                return `<span class="badge ${colorClass}" title="${tip}" aria-label="${tip}">${pctLabel || '—'}</span>`;
+            }
 
             return `
                 <span class="current-value">${formatCount(latest)}</span>
                 <div class="metric-foot">
                     ${shareHtml || ''}
                     <div class="delta-line">
-                        <span><span class="text-muted">MoM</span> ${monthBadge}</span>
-                        <span><span class="text-muted">YoY</span> ${yearBadge}</span>
+                        <span><span class="text-muted">MoM</span> ${deltaBadge(monthAbs, monthPct, 'MoM')}</span>
+                        <span><span class="text-muted">YoY</span> ${deltaBadge(yearAbs, yearPct, 'YoY')}</span>
                     </div>
                 </div>
             `;
