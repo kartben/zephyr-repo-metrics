@@ -143,12 +143,13 @@ async function loc(repo: SimpleGit): Promise<Number> {
  * @returns before and after arguments for git log/shortlog etc.
  */
 function getBeforeAfter(context: IAnalyticsSnippetContext): { before: string, after: string } {
-    let before: string = `--before=${context.moment.format('YYYY-MM-DD')}`;
+    const m = context.moment.clone();
+    let before: string = `--before=${m.format('YYYY-MM-DD')}`;
     let after: string;
-    if (context.moment.date() == context.moment.daysInMonth()) {
-        after = `--after=${context.moment.subtract(1, 'month').endOf('month').format('YYYY-MM-DD')}`;
+    if (m.date() == m.daysInMonth()) {
+        after = `--after=${m.subtract(1, 'month').endOf('month').format('YYYY-MM-DD')}`;
     } else {
-        after = `--after=${context.moment.subtract(1, 'month').format('YYYY-MM-DD')}`;
+        after = `--after=${m.subtract(1, 'month').format('YYYY-MM-DD')}`;
     }
     return { before, after };
 }
@@ -161,6 +162,30 @@ async function numberOfCommitsPastMonth(repo: SimpleGit, context: IAnalyticsSnip
     let { before, after } = getBeforeAfter(context);
 
     return repo.raw(['rev-list', 'HEAD', before, after, '--count', '--first-parent']).then((x) => { return parseInt(x) });
+}
+
+/**
+ * Count distinct commits in the past-month window whose message has an
+ * `Assisted-by:` trailer. Do not use --first-parent: the trailer lives on
+ * authored commits, not necessarily the merge.
+ */
+async function assistedByCommitsPastMonth(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {
+    let { before, after } = getBeforeAfter(context);
+
+    return repo.raw([
+        'log', 'HEAD',
+        '--grep=^Assisted-by:',
+        '-i',
+        before,
+        after,
+        '--pretty=format:%H'
+    ]).then((x) => {
+        if (!x || !x.trim()) {
+            return 0;
+        }
+        const hashes = new Set(x.trim().split(/\n/).filter((line) => line.trim()));
+        return hashes.size;
+    });
 }
 
 async function numberOfUniqueContributorsPastMonth(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {
@@ -195,6 +220,7 @@ export {
 
     numberOfCommits,
     numberOfCommitsPastMonth,
+    assistedByCommitsPastMonth,
 
     numberOfUniqueContributorsPastMonth,
 

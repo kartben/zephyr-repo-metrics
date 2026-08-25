@@ -15,6 +15,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
 
@@ -32,6 +33,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
 
         ]
@@ -49,6 +51,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
 
         ]
@@ -66,6 +69,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
 
         ]
@@ -83,6 +87,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
 
         ]
@@ -100,6 +105,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
 
         ]
@@ -117,6 +123,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
 
         ]
@@ -134,6 +141,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -150,6 +158,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -166,6 +175,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -182,6 +192,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -199,6 +210,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -215,6 +227,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -231,6 +244,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
@@ -247,6 +261,7 @@ let projects: IProject[] = [
             { name: 'loc', fn: snippets.loc },
             { name: 'numberOfCommits', fn: snippets.numberOfCommits },
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.NULL_FUNCTION },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },

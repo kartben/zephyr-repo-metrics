@@ -116,13 +116,14 @@ async function loc(repo) {
  * @returns before and after arguments for git log/shortlog etc.
  */
 function getBeforeAfter(context) {
-    let before = `--before=${context.moment.format('YYYY-MM-DD')}`;
+    const m = context.moment.clone();
+    let before = `--before=${m.format('YYYY-MM-DD')}`;
     let after;
-    if (context.moment.date() == context.moment.daysInMonth()) {
-        after = `--after=${context.moment.subtract(1, 'month').endOf('month').format('YYYY-MM-DD')}`;
+    if (m.date() == m.daysInMonth()) {
+        after = `--after=${m.subtract(1, 'month').endOf('month').format('YYYY-MM-DD')}`;
     }
     else {
-        after = `--after=${context.moment.subtract(1, 'month').format('YYYY-MM-DD')}`;
+        after = `--after=${m.subtract(1, 'month').format('YYYY-MM-DD')}`;
     }
     return { before, after };
 }
@@ -133,10 +134,32 @@ async function numberOfCommitsPastMonth(repo, context) {
     let { before, after } = getBeforeAfter(context);
     return repo.raw(['rev-list', 'HEAD', before, after, '--count', '--first-parent']).then((x) => { return parseInt(x); });
 }
+/**
+ * Count distinct commits in the past-month window whose message has an
+ * `Assisted-by:` trailer. Do not use --first-parent: the trailer lives on
+ * authored commits, not necessarily the merge.
+ */
+async function assistedByCommitsPastMonth(repo, context) {
+    let { before, after } = getBeforeAfter(context);
+    return repo.raw([
+        'log', 'HEAD',
+        '--grep=^Assisted-by:',
+        '-i',
+        before,
+        after,
+        '--pretty=format:%H'
+    ]).then((x) => {
+        if (!x || !x.trim()) {
+            return 0;
+        }
+        const hashes = new Set(x.trim().split(/\n/).filter((line) => line.trim()));
+        return hashes.size;
+    });
+}
 async function numberOfUniqueContributorsPastMonth(repo, context) {
     let { before, after } = getBeforeAfter(context);
     return repo.raw(['shortlog', '-sn', 'HEAD', before, after]).then((x) => { return x.split(/\n/).length; });
 }
 async function NULL_FUNCTION() { return null; }
-export { countFoldersInSubFolder, getCountFoldersInSubFolderFn, countFileByNameInFolder, getCountFileByNameInFolderFn, countZephyrDrivers, countZephyrSamples, countZephyrBoards, countZephyrMaintainers, countFreeRTOSBoards, countNuttXBoards, countNuttXDrivers, countRTEMSBoards, loc, numberOfCommits, numberOfCommitsPastMonth, numberOfUniqueContributorsPastMonth, NULL_FUNCTION };
+export { countFoldersInSubFolder, getCountFoldersInSubFolderFn, countFileByNameInFolder, getCountFileByNameInFolderFn, countZephyrDrivers, countZephyrSamples, countZephyrBoards, countZephyrMaintainers, countFreeRTOSBoards, countNuttXBoards, countNuttXDrivers, countRTEMSBoards, loc, numberOfCommits, numberOfCommitsPastMonth, assistedByCommitsPastMonth, numberOfUniqueContributorsPastMonth, NULL_FUNCTION };
 //# sourceMappingURL=snippets.js.map
