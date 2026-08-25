@@ -421,10 +421,9 @@
             complete: function (results) {
                 allData = (results.data || []).filter(row => row && row.project && row.date);
                 processDashboard(allData);
-                const initial = new URLSearchParams(window.location.search).get('metric');
-                if (initial && METRICS[initial]) {
-                    setActiveMetric(initial, false);
-                }
+                const initial = metricFromHash()
+                    || new URLSearchParams(window.location.search).get('metric');
+                setActiveMetric(initial && METRICS[initial] ? initial : 'contributors', false);
             },
             error: function (err) {
                 $('#dataCaption').text('Could not load CSV data.');
@@ -905,11 +904,24 @@
             });
         }
 
+        function metricFromHash() {
+            const raw = (window.location.hash || '').replace(/^#/, '');
+            return METRICS[raw] ? raw : null;
+        }
+
+        function persistMetric(metricKey) {
+            const next = '#' + metricKey;
+            if (window.location.hash !== next) {
+                history.replaceState(null, '', next);
+            }
+        }
+
         function setActiveMetric(metricKey, scrollToTrends) {
             if (!METRICS[metricKey]) {
                 return;
             }
             activeMetric = metricKey;
+            persistMetric(metricKey);
             $('.metric-card').removeClass('is-active').attr('aria-pressed', 'false');
             $(METRICS[metricKey].card).addClass('is-active').attr('aria-pressed', 'true');
             $('.metric-tabs [data-metric]').removeClass('active').attr('aria-selected', 'false');
@@ -939,6 +951,13 @@
 
         $('#compareRtos').on('change', function () {
             renderTrends();
+        });
+
+        $(window).on('hashchange', function () {
+            const key = metricFromHash();
+            if (key && key !== activeMetric) {
+                setActiveMetric(key, false);
+            }
         });
     </script>
 </body>
