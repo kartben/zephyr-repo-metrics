@@ -35,7 +35,8 @@ async function countZephyrDrivers(repo: SimpleGit): Promise<Number> {
 
 async function countZephyrSamples(repo: SimpleGit): Promise<Number> {
     let workingDir = await repo.revparse('--show-toplevel');
-    return exec(`find '${workingDir}/samples' -type f | grep sample.yaml | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
+    // sample.yaml was renamed to tests.yaml; match both so historical checkouts still count
+    return exec(`find '${workingDir}/samples' -type f \\( -name 'sample.yaml' -o -name 'tests.yaml' \\) | wc -l`).then((res: any) => { return parseInt(res.stdout.trim()) });
 }
 
 async function countZephyrBoards(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {

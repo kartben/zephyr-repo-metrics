@@ -26,7 +26,8 @@ async function countZephyrDrivers(repo) {
 }
 async function countZephyrSamples(repo) {
     let workingDir = await repo.revparse('--show-toplevel');
-    return exec(`find '${workingDir}/samples' -type f | grep sample.yaml | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
+    // sample.yaml was renamed to tests.yaml; match both so historical checkouts still count
+    return exec(`find '${workingDir}/samples' -type f \\( -name 'sample.yaml' -o -name 'tests.yaml' \\) | wc -l`).then((res) => { return parseInt(res.stdout.trim()); });
 }
 async function countZephyrBoards(repo, context) {
     let workingDir = await repo.revparse('--show-toplevel');
