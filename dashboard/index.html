@@ -634,7 +634,7 @@
                 .then(date => {
                     $('#dataCaption').html(
                         `Data as of ${moment(latestDate).format('MMMM D, YYYY')}` +
-                        ` <span class="text-muted">(collected ${moment(date).format('MMM D, YYYY')})</span>` +
+                        ` <span class="text-muted">(collected ${moment(date).format('MMM D, YYYY [at] HH:mm')})</span>` +
                         ` · <a href="${CSV_URL}">CSV</a>`
                     );
                 })
