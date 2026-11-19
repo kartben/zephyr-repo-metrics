@@ -265,6 +265,23 @@ let projects: IProject[] = [
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
         ]
     },
+
+    {
+        name: 'PebbleOS',
+        url: 'https://github.com/coredevices/pebbleos',
+        branch: 'main',
+        snippets: [
+            { name: 'drivers', fn: snippets.NULL_FUNCTION },
+            { name: 'samples', fn: snippets.NULL_FUNCTION },
+            { name: 'boards', fn: snippets.NULL_FUNCTION },
+            { name: 'maintainers', fn: snippets.NULL_FUNCTION },
+            { name: 'loc', fn: snippets.loc },
+            { name: 'numberOfCommits', fn: snippets.numberOfCommits },
+            { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
+            { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
+            { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+        ]
+    },
 ];
 
 export {projects};
