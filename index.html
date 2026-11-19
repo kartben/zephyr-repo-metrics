@@ -206,10 +206,68 @@
             color: #fff;
         }
 
+        .project-chips {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.75rem;
+        }
+
+        .project-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            padding: 0.2rem 0.65rem;
+            border: 1px solid var(--card-border);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--muted);
+        }
+
+        .project-chip .dot {
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            border: 2px solid var(--chip-color);
+        }
+
+        .project-chip[aria-pressed="true"] {
+            color: var(--ink);
+            border-color: var(--chip-color);
+        }
+
+        .project-chip[aria-pressed="true"] .dot {
+            background: var(--chip-color);
+        }
+
+        .project-chip.is-locked {
+            font-weight: 600;
+            cursor: default;
+        }
+
+        .chip-reset {
+            font-size: 0.8rem;
+            color: var(--muted);
+            background: none;
+            border: 0;
+            padding: 0.2rem 0.3rem;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
         .trends-chart-wrap {
             position: relative;
             height: 420px;
             margin-top: 1rem;
+        }
+
+        .trends-note {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin: 0.75rem 0 0;
         }
 
         footer {
@@ -337,9 +395,14 @@
                 <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="samples">Samples</button>
                 <button type="button" class="btn btn-outline-secondary" role="tab" aria-selected="false" data-metric="boards">Boards</button>
             </div>
+            <div class="project-chips" id="projectChips" role="group" aria-label="Projects to compare" hidden></div>
             <div class="trends-chart-wrap">
                 <canvas id="trendsChart" aria-label="Monthly trend chart"></canvas>
             </div>
+            <p class="trends-note" id="trendsNote" hidden>
+                Share of non-merge commits that carry an <code>Assisted-by:</code> trailer. Projects that credit
+                AI tools another way, or not at all, have no series.
+            </p>
         </section>
     </div>
 
@@ -408,10 +471,31 @@
             '#6366F1', '#14B8A6', '#A855F7', '#FB7185', '#64748B'
         ];
 
+        // Fixed per project so toggling projects never repaints the others. The first five
+        // hues stay distinguishable together; red, magenta and orange clash with each other
+        // and blue with Zephyr's violet, so those go to projects that rarely top the charts.
+        const PROJECT_COLORS = {
+            'Zephyr': '#8B5CF6',
+            'Apache NuttX': '#eda100',
+            'PebbleOS': '#1baf7a',
+            'RIOT OS': '#e34948',
+            'RT-Thread': '#008300',
+            'Apache Mynewt': '#e87ba4',
+            'Eclipse ThreadX': '#2a78d6',
+            'FreeRTOS': '#eb6834'
+        };
+        const FALLBACK_COLORS = ['#64748B', '#8B5A2B', '#1E3A8A', '#0F766E', '#A16207', '#9D174D', '#365314', '#7C2D12'];
+
+        // Comparison shows Zephyr plus this many projects until the user picks others.
+        const COMPARE_DEFAULT_COUNT = 3;
+
         let allData = [];
         let activeMetric = 'contributors';
         let compareRtos = false;
         let trendsChart = null;
+        let projectColors = {};
+        let pickedProjects = null;
+        let shownProjects = new Set();
         const sparkCharts = {};
 
         Papa.parse(CSV_URL, {
@@ -420,6 +504,7 @@
             skipEmptyLines: true,
             complete: function (results) {
                 allData = (results.data || []).filter(row => row && row.project && row.date);
+                assignProjectColors(allData);
                 processDashboard(allData);
                 const initial = metricFromHash()
                     || new URLSearchParams(window.location.search).get('metric');
@@ -458,6 +543,22 @@
 
         function hasField(data, field) {
             return data.some(row => Object.prototype.hasOwnProperty.call(row, field));
+        }
+
+        function assignProjectColors(data) {
+            projectColors = { ...PROJECT_COLORS };
+            [...new Set(data.map(row => row.project))]
+                .filter(project => !(project in PROJECT_COLORS))
+                .sort((a, b) => a.localeCompare(b))
+                .forEach((project, i) => {
+                    projectColors[project] = FALLBACK_COLORS[i % FALLBACK_COLORS.length];
+                });
+        }
+
+        // Older CSVs lack the non-merge count; first-parent commits match it for linear histories.
+        function commitsForShare(row) {
+            const nonMerge = parseMetric(row, 'nonMergeCommitsPastMonth');
+            return nonMerge != null ? nonMerge : parseMetric(row, 'numberOfCommitsPastMonth');
         }
 
         function isMonthEnd(dateStr) {
@@ -653,7 +754,7 @@
                     if (!fieldPresent) {
                         emptyHint = 'Will appear after the next collection run.';
                     } else if (latest != null && !isBrokenSeries(latest, historical)) {
-                        const commits = parseMetric(latestRow, 'numberOfCommitsPastMonth');
+                        const commits = commitsForShare(latestRow);
                         if (commits && commits > 0) {
                             const share = (latest / commits) * 100;
                             const shareLabel = formatPct(share) || '0%';
@@ -676,7 +777,7 @@
             renderTrends();
         }
 
-        function monthlySeries(data, field, project) {
+        function monthlyRows(data, project) {
             const rows = data
                 .filter(row => row.project === project && isMonthEnd(row.date) && moment(row.date).isAfter('2018-12-31'))
                 .sort((a, b) => a.date.localeCompare(b.date));
@@ -687,7 +788,11 @@
                     rows.push(latestRow);
                 }
             }
-            return rows.map(row => ({
+            return rows;
+        }
+
+        function monthlySeries(data, field, project) {
+            return monthlyRows(data, project).map(row => ({
                 date: row.date,
                 label: moment(row.date).format('MMM YYYY'),
                 value: parseMetric(row, field)
@@ -725,12 +830,99 @@
             };
         }
 
+        function assistedShareSeries(project, labels) {
+            const byLabel = {};
+            monthlyRows(allData, project).forEach((row) => {
+                byLabel[moment(row.date).format('MMM YYYY')] = row;
+            });
+            const raw = labels.map((label) => {
+                const row = byLabel[label];
+                return {
+                    assisted: row ? parseMetric(row, 'assistedByCommitsPastMonth') : null,
+                    commits: row ? commitsForShare(row) : null
+                };
+            });
+            if (!raw.some(r => r.assisted != null && r.assisted > 0)) {
+                return null;
+            }
+            const data = raw.map(r => (r.assisted == null || !r.commits ? null : (r.assisted / r.commits) * 100));
+            return { data, raw };
+        }
+
+        function recentLevel(values) {
+            const recent = values.filter(v => v != null).slice(-3);
+            if (!recent.length) {
+                return -Infinity;
+            }
+            return recent.reduce((sum, v) => sum + v, 0) / recent.length;
+        }
+
+        // Projects with data for the metric: Zephyr first, then alphabetical.
+        function comparisonCandidates(metricKey, labels) {
+            const candidates = [];
+            [...new Set(allData.map(row => row.project))].forEach((project) => {
+                let series = null;
+                if (metricKey === 'assisted') {
+                    series = assistedShareSeries(project, labels);
+                } else {
+                    const data = valuesForLabels(monthlySeries(allData, METRICS[metricKey].field, project), labels);
+                    series = data.every(v => v == null) ? null : { data, raw: null };
+                }
+                if (series) {
+                    candidates.push({ project, data: series.data, raw: series.raw, rank: recentLevel(series.data) });
+                }
+            });
+            return candidates.sort((a, b) => {
+                if (a.project === 'Zephyr') return -1;
+                if (b.project === 'Zephyr') return 1;
+                return a.project.localeCompare(b.project);
+            });
+        }
+
+        function selectedProjects(candidates) {
+            const others = candidates.filter(c => c.project !== 'Zephyr');
+            const picked = pickedProjects
+                ? others.filter(c => pickedProjects.has(c.project))
+                : [...others].sort((a, b) => b.rank - a.rank).slice(0, COMPARE_DEFAULT_COUNT);
+            return new Set(['Zephyr', ...picked.map(c => c.project)]);
+        }
+
+        function renderProjectChips(candidates, selected) {
+            const wrap = document.getElementById('projectChips');
+            wrap.replaceChildren();
+            candidates.forEach((c) => {
+                const locked = c.project === 'Zephyr';
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = locked ? 'project-chip is-locked' : 'project-chip';
+                chip.dataset.project = c.project;
+                chip.setAttribute('aria-pressed', selected.has(c.project) ? 'true' : 'false');
+                chip.style.setProperty('--chip-color', projectColors[c.project] || COLORS[COLORS.length - 1]);
+                if (locked) {
+                    chip.setAttribute('aria-disabled', 'true');
+                    chip.title = 'Always shown';
+                }
+                const dot = document.createElement('span');
+                dot.className = 'dot';
+                dot.setAttribute('aria-hidden', 'true');
+                chip.append(dot, c.project);
+                wrap.append(chip);
+            });
+            if (pickedProjects) {
+                const reset = document.createElement('button');
+                reset.type = 'button';
+                reset.className = 'chip-reset';
+                reset.textContent = `Reset to top ${COMPARE_DEFAULT_COUNT}`;
+                wrap.append(reset);
+            }
+        }
+
         function renderTrends() {
             const metric = METRICS[activeMetric];
             const isAssisted = activeMetric === 'assisted';
-            const compare = !isAssisted && document.getElementById('compareRtos').checked;
+            const compare = document.getElementById('compareRtos').checked;
+            const shareMode = isAssisted && compare;
             compareRtos = compare;
-            $('#compareRtosWrap').toggle(!isAssisted);
 
             let labels = [];
             let datasets = [];
@@ -738,7 +930,7 @@
             let showLegend = false;
             let tooltipSuffix = metric.suffix;
 
-            if (isAssisted) {
+            if (isAssisted && !compare) {
                 const commits = monthlySeries(allData, 'numberOfCommitsPastMonth', 'Zephyr');
                 const assisted = monthlySeries(allData, 'assistedByCommitsPastMonth', 'Zephyr');
                 labels = commits.map(p => p.label);
@@ -770,43 +962,66 @@
                 subtitle = 'Zephyr, monthly · AI-assisted vs all commits';
                 showLegend = true;
                 tooltipSuffix = '';
-            } else {
-                const projects = compare
-                    ? [...new Set(allData.map(row => row.project))]
-                    : ['Zephyr'];
+            } else if (!compare) {
                 const zephyrSeries = monthlySeries(allData, metric.field, 'Zephyr');
                 labels = zephyrSeries.map(p => p.label);
+                datasets = [lineDataset({
+                    label: 'Zephyr',
+                    data: zephyrSeries.map(p => p.value),
+                    color: COLORS[0],
+                    fillColor: 'rgba(139, 92, 246, 0.08)',
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    order: 0
+                })];
+                subtitle = `${metric.label}, Zephyr monthly`;
+            } else {
+                labels = monthlySeries(allData, metric.field, 'Zephyr').map(p => p.label);
+                const candidates = comparisonCandidates(activeMetric, labels);
+                const selected = selectedProjects(candidates);
+                shownProjects = selected;
+                renderProjectChips(candidates, selected);
 
-                projects.forEach((project) => {
-                    const data = valuesForLabels(monthlySeries(allData, metric.field, project), labels);
-                    if (data.every(v => v == null)) {
-                        return;
+                let shown = candidates.filter(c => selected.has(c.project));
+                if (shareMode) {
+                    // Start one month before the first month any shown project reports a non-zero share.
+                    const first = labels.findIndex((_, i) => shown.some(c => c.data[i] != null && c.data[i] > 0));
+                    if (first > 0) {
+                        const start = first - 1;
+                        labels = labels.slice(start);
+                        shown = shown.map(c => ({ ...c, data: c.data.slice(start), raw: c.raw.slice(start) }));
                     }
-                    const isZephyr = project.toLowerCase() === 'zephyr';
-                    const colorIndex = datasets.length;
-                    const color = isZephyr ? COLORS[0] : COLORS[(colorIndex + 1) % COLORS.length];
-                    datasets.push(lineDataset({
-                        label: project,
-                        data,
+                }
+
+                shown.forEach((c) => {
+                    const isZephyr = c.project === 'Zephyr';
+                    const color = projectColors[c.project] || COLORS[COLORS.length - 1];
+                    const dataset = lineDataset({
+                        label: c.project,
+                        data: c.data,
                         color,
                         fillColor: isZephyr ? 'rgba(139, 92, 246, 0.08)' : `${color}20`,
-                        borderWidth: isZephyr ? 3 : 1.5,
+                        borderWidth: isZephyr ? 3 : 2,
                         pointRadius: isZephyr ? 3 : 2,
                         pointHoverRadius: isZephyr ? 5 : 4,
                         order: isZephyr ? 0 : 1
-                    }));
+                    });
+                    dataset.raw = c.raw;
+                    datasets.push(dataset);
                 });
 
-                datasets.sort((a, b) => {
-                    if (a.label.toLowerCase() === 'zephyr') return -1;
-                    if (b.label.toLowerCase() === 'zephyr') return 1;
-                    return a.label.localeCompare(b.label);
-                });
-
-                subtitle = compare ? `${metric.label}, monthly · all RTOS` : `${metric.label}, Zephyr monthly`;
-                showLegend = compare && datasets.length > 1;
+                const scope = `${datasets.length} of ${candidates.length} RTOS`;
+                subtitle = shareMode
+                    ? `AI-assisted share of monthly commits · ${scope}`
+                    : `${metric.label}, monthly · ${scope}`;
+                if (shareMode) {
+                    tooltipSuffix = '';
+                }
             }
 
+            document.getElementById('projectChips').hidden = !compare;
+            document.getElementById('trendsNote').hidden = !shareMode;
             $('#trendsSubtitle').text(subtitle);
 
             const ctx = document.getElementById('trendsChart').getContext('2d');
@@ -844,6 +1059,9 @@
                         tooltip: {
                             mode: 'index',
                             intersect: false,
+                            itemSort: compare
+                                ? (a, b) => (b.parsed.y ?? -Infinity) - (a.parsed.y ?? -Infinity)
+                                : undefined,
                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
                             titleColor: '#333',
                             bodyColor: '#666',
@@ -858,13 +1076,20 @@
                                     if (value == null) {
                                         return `${context.dataset.label}: No data`;
                                     }
+                                    if (shareMode) {
+                                        const raw = context.dataset.raw ? context.dataset.raw[context.dataIndex] : null;
+                                        const pct = (formatPct(value) || '0%').replace('+', '');
+                                        return raw
+                                            ? `${context.dataset.label}: ${pct} (${formatCount(raw.assisted)} of ${formatCount(raw.commits)})`
+                                            : `${context.dataset.label}: ${pct}`;
+                                    }
                                     if (isAssisted) {
                                         return `${context.dataset.label}: ${formatCount(value)}`;
                                     }
                                     return `${context.dataset.label}: ${formatCount(value)}${tooltipSuffix}`;
                                 },
                                 footer: function (items) {
-                                    if (!isAssisted || !items || items.length < 2) {
+                                    if (!isAssisted || compare || !items || items.length < 2) {
                                         return '';
                                     }
                                     const byLabel = {};
@@ -893,7 +1118,8 @@
                         },
                         y: {
                             beginAtZero: true,
-                            grid: { color: 'rgba(0,0,0,0.06)' }
+                            grid: { color: 'rgba(0,0,0,0.06)' },
+                            ticks: shareMode ? { callback: value => `${value}%` } : {}
                         }
                     },
                     interaction: {
@@ -951,6 +1177,28 @@
         });
 
         $('#compareRtos').on('change', function () {
+            renderTrends();
+        });
+
+        $('#projectChips').on('click', '.project-chip', function () {
+            const project = this.dataset.project;
+            if (project === 'Zephyr') {
+                return;
+            }
+            if (!pickedProjects) {
+                pickedProjects = new Set([...shownProjects].filter(p => p !== 'Zephyr'));
+            }
+            if (pickedProjects.has(project)) {
+                pickedProjects.delete(project);
+            } else {
+                pickedProjects.add(project);
+            }
+            renderTrends();
+            $(`#projectChips .project-chip[data-project="${CSS.escape(project)}"]`).trigger('focus');
+        });
+
+        $('#projectChips').on('click', '.chip-reset', function () {
+            pickedProjects = null;
             renderTrends();
         });
 
