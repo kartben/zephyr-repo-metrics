@@ -165,9 +165,21 @@ async function numberOfCommitsPastMonth(repo: SimpleGit, context: IAnalyticsSnip
 }
 
 /**
- * Count distinct commits in the past-month window whose message has an
- * `Assisted-by:` trailer. Do not use --first-parent: the trailer lives on
- * authored commits, not necessarily the merge.
+ * Count non-merge commits in the past-month window. Unlike
+ * numberOfCommitsPastMonth this includes commits brought in by merges, so it
+ * is the denominator for assistedByCommitsPastMonth in projects that merge
+ * pull requests with merge commits.
+ */
+async function nonMergeCommitsPastMonth(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {
+    let { before, after } = getBeforeAfter(context);
+
+    return repo.raw(['rev-list', 'HEAD', before, after, '--count', '--no-merges']).then((x) => { return parseInt(x) });
+}
+
+/**
+ * Count distinct non-merge commits in the past-month window whose message has
+ * an `Assisted-by:` trailer. Do not use --first-parent: the trailer lives on
+ * authored commits, not on the merge.
  */
 async function assistedByCommitsPastMonth(repo: SimpleGit, context: IAnalyticsSnippetContext): Promise<Number> {
     let { before, after } = getBeforeAfter(context);
@@ -176,6 +188,7 @@ async function assistedByCommitsPastMonth(repo: SimpleGit, context: IAnalyticsSn
         'log', 'HEAD',
         '--grep=^Assisted-by:',
         '-i',
+        '--no-merges',
         before,
         after,
         '--pretty=format:%H'
@@ -221,6 +234,7 @@ export {
     numberOfCommits,
     numberOfCommitsPastMonth,
     assistedByCommitsPastMonth,
+    nonMergeCommitsPastMonth,
 
     numberOfUniqueContributorsPastMonth,
 

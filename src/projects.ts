@@ -17,6 +17,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
 
     },
@@ -35,6 +36,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
 
         ]
     },
@@ -53,6 +55,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
 
         ]
     },
@@ -71,6 +74,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
 
         ]
     },
@@ -89,6 +93,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
 
         ]
     },
@@ -107,6 +112,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
 
         ]
     },
@@ -125,6 +131,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
 
         ]
     },
@@ -143,6 +150,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 
@@ -160,6 +168,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 
@@ -177,6 +186,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 
@@ -194,6 +204,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 
@@ -212,6 +223,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 
@@ -229,6 +241,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 
@@ -246,6 +259,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 
@@ -263,6 +277,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 
@@ -280,6 +295,7 @@ let projects: IProject[] = [
             { name: 'numberOfCommitsPastMonth', fn: snippets.numberOfCommitsPastMonth },
             { name: 'assistedByCommitsPastMonth', fn: snippets.assistedByCommitsPastMonth },
             { name: 'numberOfUniqueContributorsPastMonth', fn: snippets.numberOfUniqueContributorsPastMonth },
+            { name: 'nonMergeCommitsPastMonth', fn: snippets.nonMergeCommitsPastMonth },
         ]
     },
 ];
